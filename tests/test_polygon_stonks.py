@@ -4,7 +4,7 @@ Tests for polygon_stonks library.
 
 import unittest
 from unittest.mock import Mock, patch
-from polygon_stonks import GapAnalyzer, calculate_overnight_change
+from polygon_stonks_lib import GapAnalyzer, calculate_overnight_change
 
 
 class TestUtils(unittest.TestCase):

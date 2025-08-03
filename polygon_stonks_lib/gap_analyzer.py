@@ -36,6 +36,55 @@ class GapAnalyzer:
         self.snapshot_data = self.client.get_snapshot_all(market_type)
         return self.snapshot_data
     
+    def fetch_ticker_details(self, ticker):
+        """
+        Fetch ticker_overview data from Polygon.io API.
+        
+        Args:
+            ticker (str): Ticker symbol to look up
+            
+        Returns:
+            The ticker details
+        """
+        self.ticker_details = self.client.get_ticker_details(ticker)
+        return self.ticker_details
+    
+    def get_market_cap_for_ticker(self, ticker):
+        """
+        Get the market cap for a specific ticker.
+        
+        Args:
+            ticker (str): Ticker symbol
+            
+        Returns:
+            float: Market cap of the ticker
+        """
+        details = self.fetch_ticker_details(ticker)
+        return details.market_cap if details else None
+
+    def filter_tickers_by_market_cap(self, tickers_array, min_market_cap=1e6, max_market_cap=2e9):
+        """
+        Filter snapshot data by minimum market cap.
+        
+        Args:
+            min_market_cap (float): Minimum market cap to filter by
+            max_market_cap (float): Maximum market cap to filter by
+
+        Returns:
+            list: List of ticker symbols with market cap above the threshold
+        """
+        if not self.snapshot_data:
+            raise ValueError("No snapshot data available. Call fetch_snapshot() first.")
+        
+        filtered_tickers = []
+
+        for ticker in tickers_array:
+            market_cap = self.get_market_cap_for_ticker(ticker)
+            if market_cap and market_cap >= min_market_cap and market_cap <= max_market_cap:
+                filtered_tickers.append(ticker)
+
+        return filtered_tickers
+
     def get_gapped_stocks(self, gap_threshold=0.2, gap_direction="down"):
         """
         Get stocks that have gapped based on the threshold.

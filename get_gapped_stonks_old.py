@@ -46,7 +46,7 @@ def get_gapped_stonks(snapshot, gap_down_percentage):
     
     return gapped_stocks
 
-def get_overnight_change(item):
+def get_ticker_overview(item):
     """
     Function to calculate the overnight change for a given TickerSnapshot item.
     """
