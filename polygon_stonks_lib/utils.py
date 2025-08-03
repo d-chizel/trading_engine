@@ -190,3 +190,20 @@ def validate_ticker_data(item):
             item.min.close != 0 and 
             hasattr(item.prev_day, 'close') and 
             item.prev_day.close != 0)
+    
+def get_results_outputs(ticker, daily_agg_item, dod_gap):
+    """
+    Get the results outputs for the analysis.
+    
+    Returns:
+        dict: Dictionary containing the results
+    """
+    return {
+        'ticker': ticker,
+        'open': daily_agg_item.open,
+        'high': getattr(daily_agg_item, 'high', None),
+        'low': getattr(daily_agg_item, 'low', None),
+        'close': daily_agg_item.close,
+        'volume': getattr(daily_agg_item, 'volume', None),
+        'overnight_change': dod_gap
+    }

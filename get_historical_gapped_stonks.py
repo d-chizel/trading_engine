@@ -4,7 +4,7 @@ Gets stocks that have gapped through time.
 
 from datetime import datetime, date, timedelta
 from polygon_stonks_lib import GapAnalyzer
-from polygon_stonks_lib.utils import parse_arguments, parse_date, get_next_weekday, is_weekday
+from polygon_stonks_lib.utils import parse_arguments, parse_date, get_next_weekday, is_weekday, calculate_overnight_change, get_results_outputs
 
 def main():
     # Parse command line arguments
@@ -60,18 +60,48 @@ def main():
     
     print(f"Starting analysis from {start_date}...")
 
-    if len(analyzer.fetch_daily_aggs(prev_date)) == 0:
+    prev_date_daily_agg = analyzer.fetch_daily_aggs(prev_date)
+    if len(prev_date_daily_agg) == 0:
         prev_date = get_next_weekday(prev_date + timedelta(days=1))
         prev_date_daily_agg = analyzer.fetch_daily_aggs(prev_date)
-        
+
     current_date = get_next_weekday(prev_date + timedelta(days=1))
     
     while current_date <= end_date:
-        
+        print(current_date)
+
         current_date_daily_agg = analyzer.fetch_daily_aggs(current_date)
-        print(len(prev_date_daily_agg))
-        print(len(current_date_daily_agg))
-        
+        if len(current_date_daily_agg) == 0:
+            current_date = get_next_weekday(current_date + timedelta(days=1))
+            current_date_daily_agg = analyzer.fetch_daily_aggs(current_date)
+            continue
+
+        # Build dicts for fast lookup by ticker
+        prev_dict = {item.ticker: item for item in prev_date_daily_agg}
+        curr_dict = {item.ticker: item for item in current_date_daily_agg}
+
+        # Find common tickers
+        common_tickers = set(prev_dict.keys()) & set(curr_dict.keys())
+
+        for ticker in common_tickers:
+            prev_item = prev_dict[ticker]
+            curr_item = curr_dict[ticker]
+            dod_gap = calculate_overnight_change(curr_item.open, prev_item.close)
+            if args.gap_direction == "up" and dod_gap > args.gap_threshold:
+                all_results.append(get_results_outputs(ticker, prev_item, dod_gap))
+                print(ticker, ", ", dod_gap)
+            elif args.gap_direction == "down" and dod_gap <= -args.gap_threshold:
+                all_results.append({
+                    'ticker': ticker,
+                    'prev_open': prev_item.open,
+                    'prev_close': prev_item.close,
+                    'prev_high': getattr(prev_item, 'high', None),
+                    'prev_low': getattr(prev_item, 'low', None),
+                    'prev_volume': getattr(prev_item, 'volume', None),
+                    'min_close': getattr(curr_item, 'close', None) if hasattr(curr_item, 'min') else None,
+                    'overnight_change': dod_gap,
+                })
+
         # Loop through each element (ticker) in prev_date_daily_agg
         if prev_date_daily_agg:
             for ticker_data in prev_date_daily_agg:
@@ -92,7 +122,7 @@ def main():
         prev_date_daily_agg = current_date_daily_agg
         current_date = get_next_weekday(prev_date + timedelta(days=1))
     
-    print(f"Completed analysis for {len(all_results)} days")
+    print(f"Completed analysis for {len(all_results)} tickers")
         
     # Save to CSV if requested
     if args.output_csv:
