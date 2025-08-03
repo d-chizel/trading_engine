@@ -91,16 +91,7 @@ def main():
                 all_results.append(get_results_outputs(ticker, prev_item, dod_gap))
                 print(ticker, ", ", dod_gap)
             elif args.gap_direction == "down" and dod_gap <= -args.gap_threshold:
-                all_results.append({
-                    'ticker': ticker,
-                    'prev_open': prev_item.open,
-                    'prev_close': prev_item.close,
-                    'prev_high': getattr(prev_item, 'high', None),
-                    'prev_low': getattr(prev_item, 'low', None),
-                    'prev_volume': getattr(prev_item, 'volume', None),
-                    'min_close': getattr(curr_item, 'close', None) if hasattr(curr_item, 'min') else None,
-                    'overnight_change': dod_gap,
-                })
+                all_results.append(get_results_outputs(ticker, prev_item, dod_gap))
 
         # Loop through each element (ticker) in prev_date_daily_agg
         if prev_date_daily_agg:
