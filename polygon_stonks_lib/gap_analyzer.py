@@ -172,10 +172,10 @@ class GapAnalyzer:
             gap_direction (str): Direction of gap - "down", "up", or "both"
             
         Returns:
-            dict: Dictionary containing 'gapped_stocks' list and 'dataframe'
+            dict: Dictionary containing 'gapped_stocks' list
         """
         if not self.snapshot_data:
-            self.fetch_snapshot()
+           self.fetch_snapshot()
             
         gapped_stocks = self.get_gapped_stocks(gap_threshold, gap_direction)
         #dataframe = self.create_dataframe()
