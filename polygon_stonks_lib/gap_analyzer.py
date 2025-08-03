@@ -37,6 +37,19 @@ class GapAnalyzer:
         self.snapshot_data = self.client.get_snapshot_all(market_type, include_otc=include_otc)
         return self.snapshot_data
     
+    def fetch_daily_aggs(self, date):
+        """
+        Fetch grouped_daily_aggs data from Polygon.io API.
+        
+        Args:
+            date (str): Date to look up (format: YYYY-MM-DD)
+
+        Returns:
+            The object with all open high low close for all tickers
+        """
+        self.daily_aggs = self.client.get_grouped_daily_aggs(date, include_otc='false')
+        return self.daily_aggs
+
     def fetch_ticker_details(self, ticker):
         """
         Fetch ticker_overview data from Polygon.io API.
