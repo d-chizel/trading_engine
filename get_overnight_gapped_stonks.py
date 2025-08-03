@@ -1,5 +1,5 @@
 """
-Example usage of the polygon_stonks library.
+Identifies the stocks within a market cap band that have gapped overnight.
 """
 
 from polygon_stonks_lib import GapAnalyzer
@@ -17,7 +17,9 @@ def main():
     print("Analyzing gaps...")
     results = analyzer.analyze_gaps(gap_threshold=0.2, gap_direction="up")
     filtered_results = analyzer.filter_tickers_by_market_cap(
-        results['gapped_stocks'], min_market_cap=1e6, max_market_cap=2e9
+        results['gapped_stocks'],
+        min_market_cap=1e6,
+        max_market_cap=2e9
     )
     
     # Display results
