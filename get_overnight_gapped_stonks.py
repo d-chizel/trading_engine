@@ -18,7 +18,7 @@ def main():
     results = analyzer.analyze_gaps(gap_threshold=0.2, gap_direction="up")
     filtered_results = analyzer.filter_tickers_by_market_cap(
         results['gapped_stocks'],
-        min_market_cap=1e6,
+        min_market_cap=1e5,
         max_market_cap=2e9
     )
     
