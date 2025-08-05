@@ -73,7 +73,11 @@ class GapAnalyzer:
         Returns:
             float: Market cap of the ticker
         """
-        details = self.fetch_ticker_details(ticker)
+        try:
+            details = self.fetch_ticker_details(ticker)
+        except Exception as e:
+            # Optionally log the exception e
+            return None
         if not details:
             return None
         if hasattr(details, 'market_cap') and details.type == 'CS':
