@@ -104,6 +104,8 @@ class GapAnalyzer:
             market_cap = self.get_market_cap_for_ticker(ticker)
             if market_cap and market_cap >= min_market_cap and market_cap <= max_market_cap:
                 filtered_tickers.append(ticker)
+            else: 
+                print(f"Ticker {ticker} filtered out due to market cap: {market_cap}")
 
         return filtered_tickers
 
@@ -130,7 +132,7 @@ class GapAnalyzer:
                     validate_ticker_data(item)):
                     
                     overnight_change = calculate_overnight_change(
-                        item.last_trade.price, item.prev_day.close
+                        item.last_quote.bid_price, item.prev_day.close
                     )
                     
                     # Check gap direction
