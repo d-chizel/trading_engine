@@ -109,7 +109,7 @@ class GapAnalyzer:
 
         return filtered_tickers
 
-    def get_gapped_stocks(self, gap_threshold=0.2, gap_direction="down"):
+    def get_gapped_stocks(self, gap_threshold=0.2, gap_direction="up"):
         """
         Get stocks that have gapped based on the threshold.
         
@@ -127,12 +127,14 @@ class GapAnalyzer:
         
         for item in self.snapshot_data:
             if isinstance(item, TickerSnapshot) and isinstance(item.prev_day, Agg):
-                if (isinstance(item.prev_day.open, float) and 
-                    isinstance(item.prev_day.close, float) and
+
+                if ((isinstance(item.last_quote.bid_price, float) or isinstance(item.last_quote.bid_price, int)) and
+                    (isinstance(item.prev_day.close, float) or isinstance(item.prev_day.close, int)) and
                     validate_ticker_data(item)):
-                    
+
                     overnight_change = calculate_overnight_change(
                         item.last_quote.bid_price, item.prev_day.close
+                        #item.day.open, item.prev_day.close
                     )
                     
                     # Check gap direction

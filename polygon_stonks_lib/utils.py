@@ -186,8 +186,8 @@ def validate_ticker_data(item):
     Returns:
         bool: True if item has valid data, False otherwise
     """
-    return (hasattr(item.min, 'close') and 
-            item.min.close != 0 and 
+    return (hasattr(item.last_quote, 'bid_price') and 
+            item.last_quote.bid_price != 0 and 
             hasattr(item.prev_day, 'close') and 
             item.prev_day.close != 0)
     
