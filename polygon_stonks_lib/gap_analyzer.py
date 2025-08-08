@@ -109,7 +109,7 @@ class GapAnalyzer:
 
         return filtered_tickers
 
-    def get_gapped_stocks(self, gap_threshold=0.2, gap_direction="up"):
+    def get_premarket_gapped_stocks(self, gap_threshold=0.2, gap_direction="up"):
         """
         Get stocks that have gapped based on the threshold.
         
@@ -134,7 +134,43 @@ class GapAnalyzer:
 
                     overnight_change = calculate_overnight_change(
                         item.last_quote.bid_price, item.prev_day.close
-                        #item.day.open, item.prev_day.close
+                    )
+                    
+                    # Check gap direction
+                    if gap_direction == "down" and overnight_change < -gap_threshold:
+                        gapped_stocks.append(item.ticker)
+                    elif gap_direction == "up" and overnight_change > gap_threshold:
+                        gapped_stocks.append(item.ticker)
+                    elif gap_direction == "both" and abs(overnight_change) > gap_threshold:
+                        gapped_stocks.append(item.ticker)
+        
+        return gapped_stocks
+    
+    def get_overnight_gapped_stocks(self, gap_threshold=0.2, gap_direction="up"):
+        """
+        Get stocks that have gapped based on the threshold.
+        
+        Args:
+            gap_threshold (float): Minimum gap percentage (as decimal, e.g., 0.2 for 20%)
+            gap_direction (str): Direction of gap - "down", "up", or "both"
+            
+        Returns:
+            list: List of ticker symbols that meet the gap criteria
+        """
+        if not self.snapshot_data:
+            raise ValueError("No snapshot data available. Call fetch_snapshot() first.")
+            
+        gapped_stocks = []
+        
+        for item in self.snapshot_data:
+            if isinstance(item, TickerSnapshot) and isinstance(item.prev_day, Agg):
+
+                if ((isinstance(item.last_quote.bid_price, float) or isinstance(item.last_quote.bid_price, int)) and
+                    (isinstance(item.prev_day.close, float) or isinstance(item.prev_day.close, int)) and
+                    validate_ticker_data(item)):
+
+                    overnight_change = calculate_overnight_change(
+                        item.day.open, item.prev_day.close
                     )
                     
                     # Check gap direction
@@ -184,7 +220,7 @@ class GapAnalyzer:
         
         return pd.DataFrame(data_rows)
     
-    def analyze_gaps(self, gap_threshold=0.2, gap_direction="up"):
+    def analyze_gaps(self, gap_threshold=0.2, gap_direction="up", pre_market="true"):
         """
         Perform complete gap analysis and return both gapped stocks and DataFrame.
         
@@ -197,10 +233,13 @@ class GapAnalyzer:
         """
         if not self.snapshot_data:
            self.fetch_snapshot()
-            
-        gapped_stocks = self.get_gapped_stocks(gap_threshold, gap_direction)
-        #dataframe = self.create_dataframe()
         
+        if pre_market.lower() == "true":
+            gapped_stocks = self.get_premarket_gapped_stocks(gap_threshold, gap_direction)
+            #dataframe = self.create_dataframe()
+        else:
+            gapped_stocks = self.get_overnight_gapped_stocks(gap_threshold, gap_direction)
+
         return {
             #'dataframe': dataframe,
             #'total_stocks': len(dataframe),

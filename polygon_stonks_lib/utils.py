@@ -51,7 +51,7 @@ def parse_arguments():
     parser.add_argument(
         "--min-market-cap", 
         type=float, 
-        default=1e6,
+        default=5e5,
         help="Minimum market cap filter. Default: 1,000,000"
     )
     
@@ -72,6 +72,14 @@ def parse_arguments():
         "--verbose", 
         action="store_true",
         help="Enable verbose output"
+    )
+    
+    parser.add_argument(
+        "--pre-market", 
+        type=str, 
+        choices=["true", "false"],
+        default="true",
+        help="Enable pre-market analysis"
     )
     
     return parser.parse_args()

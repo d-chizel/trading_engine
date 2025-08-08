@@ -3,8 +3,12 @@ Identifies the stocks within a market cap band that have gapped overnight.
 """
 
 from polygon_stonks_lib import GapAnalyzer
+from polygon_stonks_lib.utils import parse_arguments
 
 def main():
+    # Parse command line arguments
+    args = parse_arguments()
+    
     # Initialize with your API key
     api_key = "8N6bwNZ7awkAPNHQySbg8eQVI_yM6OTD"
     analyzer = GapAnalyzer(api_key)
@@ -15,12 +19,11 @@ def main():
     
     # Analyze gaps
     print("Analyzing gaps...")
-    results = analyzer.analyze_gaps(gap_threshold=0.2, gap_direction="up")
-    print(results['gapped_stocks'])
+    results = analyzer.analyze_gaps(gap_threshold=0.2, gap_direction="up", pre_market=args.pre_market)
     filtered_results = analyzer.filter_tickers_by_market_cap(
         results['gapped_stocks'],
-        min_market_cap=1e5,
-        max_market_cap=2e9
+        min_market_cap=args.min_market_cap,
+        max_market_cap=args.max_market_cap
     )
     
     # Display results
