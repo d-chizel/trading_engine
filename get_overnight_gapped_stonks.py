@@ -10,7 +10,7 @@ def main():
     args = parse_arguments()
     
     # Initialize with your API key
-    api_key = "8N6bwNZ7awkAPNHQySbg8eQVI_yM6OTD"
+    api_key = "oPNvU_u9B3eHFJrSG7ppDrnP4HGmgPqU"
     analyzer = GapAnalyzer(api_key)
     
     # Fetch market snapshot
