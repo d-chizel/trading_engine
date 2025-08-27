@@ -80,11 +80,12 @@ class GapAnalyzer:
             return None
         if not details:
             return None
-        if hasattr(details, 'market_cap') and details.type == 'CS':
-            return details.market_cap
-        return None
-    
-    def filter_tickers_by_market_cap(self, tickers_array, min_market_cap=1e6, max_market_cap=2e9):
+        if hasattr(details, 'market_cap'):
+            return {"market_cap": details.market_cap, "type": details.type}
+        else:
+            return {"market_cap": None, "type": details.type}
+
+    def filter_tickers_by_market_cap(self, tickers_array, min_market_cap=1e5, max_market_cap=2e9):
         """
         Filter snapshot data by minimum market cap.
         
@@ -101,11 +102,15 @@ class GapAnalyzer:
         filtered_tickers = []
 
         for ticker in tickers_array:
-            market_cap = self.get_market_cap_for_ticker(ticker)
-            if market_cap and market_cap >= min_market_cap and market_cap <= max_market_cap:
-                filtered_tickers.append(ticker)
-            else: 
-                print(f"Ticker {ticker} filtered out due to market cap: {market_cap}")
+            market_cap = self.get_market_cap_for_ticker(ticker)["market_cap"]
+            stock_type = self.get_market_cap_for_ticker(ticker)["type"]
+            if (stock_type == 'CS' or stock_type == 'ADRC'):
+                if market_cap and market_cap >= min_market_cap and market_cap <= max_market_cap:
+                    filtered_tickers.append(ticker)
+                else: 
+                    print(f"Ticker {ticker} filtered out due to market cap: {market_cap}")
+            else:
+                print(f"Ticker {ticker} filtered out due to type: {stock_type}")
 
         return filtered_tickers
 
@@ -181,6 +186,7 @@ class GapAnalyzer:
                     elif gap_direction == "both" and abs(overnight_change) > gap_threshold:
                         gapped_stocks.append(item.ticker)
         
+        print(gapped_stocks)
         return gapped_stocks
     
     def create_dataframe(self):
