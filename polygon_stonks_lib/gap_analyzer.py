@@ -5,7 +5,7 @@ Gap Analyzer class for identifying gapped stocks using Polygon.io API.
 import pandas as pd
 from polygon import RESTClient
 from polygon.rest.models import TickerSnapshot, Agg
-from .utils import calculate_overnight_change, validate_ticker_data
+from .utils import calculate_overnight_change, validate_ticker_data, find_ny_times_in_data
 
 
 class GapAnalyzer:
@@ -102,8 +102,12 @@ class GapAnalyzer:
         filtered_tickers = []
 
         for ticker in tickers_array:
-            market_cap = self.get_market_cap_for_ticker(ticker)["market_cap"]
-            stock_type = self.get_market_cap_for_ticker(ticker)["type"]
+            ticker_market_cap = self.get_market_cap_for_ticker(ticker)
+            if ticker_market_cap is None:
+                print(f"Ticker {ticker} not found or no market cap data available.")
+            else:
+                market_cap = self.get_market_cap_for_ticker(ticker)["market_cap"]
+                stock_type = self.get_market_cap_for_ticker(ticker)["type"]
             if (stock_type == 'CS' or stock_type == 'ADRC'):
                 if market_cap and market_cap >= min_market_cap and market_cap <= max_market_cap:
                     filtered_tickers.append(ticker)
@@ -252,3 +256,38 @@ class GapAnalyzer:
             'gapped_stocks': gapped_stocks,
             'gapped_count': len(gapped_stocks)
         }
+
+    def get_overnight_reference_time_prices(self, tickers, start_date, target_times=None, print_outputs=False):
+        """
+        Get close prices at specific NY times for a given ticker.
+        
+        Args:
+            tickers (list): List of ticker symbols to look up
+            target_times (list): List of (hour, minute) tuples for target times
+            
+        Returns:
+            list: List of matching records with NY time and close price
+        """
+        if target_times is None:
+            target_times = [(9, 30), (10, 30), (12, 0)]
+
+        # Load historical data for the ticker
+        ticker_reference_prices = []
+        for ticker in tickers:
+            ticker_quotes = self.client.list_aggs(
+                ticker,
+                1,
+                "day",
+                start_date,
+                start_date,
+                adjusted="true",
+                sort="asc",
+                limit=5000,
+            )
+            if (print_outputs):
+                print(f"Ticker: {ticker}, Quotes: {ticker_quotes}")
+            ticker_reference_prices.append(find_ny_times_in_data(ticker_quotes, target_times))
+
+        # Find matching records
+
+        return ticker_reference_prices

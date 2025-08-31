@@ -2,7 +2,9 @@
 Utility functions for polygon_stonks library.
 """
 import argparse
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
+import pytz
+
 
 def parse_arguments():
     """
@@ -183,7 +185,6 @@ def calculate_overnight_change(current_price, previous_close):
         return 0
     return (current_price / previous_close) - 1
 
-
 def validate_ticker_data(item):
     """
     Validate that a ticker snapshot item has the required data.
@@ -215,3 +216,52 @@ def get_results_outputs(ticker, daily_agg_item, dod_gap):
         'volume': getattr(daily_agg_item, 'volume', None),
         'overnight_change': dod_gap
     }
+
+def timestamp_to_ny_time(timestamp_ms):
+    """
+    Convert Unix timestamp in milliseconds to New York time.
+    
+    Args:
+        timestamp_ms (int): Unix timestamp in milliseconds
+        
+    Returns:
+        datetime: DateTime object in New York timezone
+    """
+    # Convert milliseconds to seconds
+    timestamp_s = timestamp_ms / 1000
+    
+    # Create UTC datetime
+    utc_dt = datetime.fromtimestamp(timestamp_s, tz=timezone.utc)
+    
+    # Convert to New York timezone
+    ny_tz = pytz.timezone('America/New_York')
+    ny_dt = utc_dt.astimezone(ny_tz)
+    
+    return ny_dt
+
+def is_target_time(ny_datetime, target_times):
+    """
+    Check if the NY datetime matches any of our target times.
+    
+    Args:
+        ny_datetime (datetime): DateTime in NY timezone
+        target_times (list): List of target times as (hour, minute) tuples
+        
+    Returns:
+        str or None: Description of matched time, or None if no match
+    """
+    current_time = (ny_datetime.hour, ny_datetime.minute)
+    
+    time_labels = {
+        (9, 30): "9:30 AM",
+        (10, 30): "10:30 AM", 
+        (12, 0): "12:00 PM"
+    }
+    
+    for target_hour, target_minute in target_times:
+        # Allow for some tolerance (within 1 minute)
+        if (abs(current_time[0] - target_hour) == 0 and 
+            abs(current_time[1] - target_minute) <= 1):
+            return time_labels.get((target_hour, target_minute), f"{target_hour}:{target_minute:02d}")
+    
+    return None
