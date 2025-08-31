@@ -17,6 +17,7 @@ def main():
     api_key = args.api_key
     analyzer = GapAnalyzer(api_key)
     file_path = "D:/OneDrive/Documents/stonks_testing/intraday_prices_for_pnl_tracking/"
+    file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/intraday_prices_for_pnl_tracking/"
     input_file = f"{file_path}trades_data.csv"
     output_file = f"{file_path}open_high_low_close.csv"
 
