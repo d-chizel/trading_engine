@@ -2,10 +2,13 @@
 Gap Analyzer class for identifying gapped stocks using Polygon.io API.
 """
 
+from tracemalloc import start
+from xmlrpc import client
 import pandas as pd
 from polygon import RESTClient
 from polygon.rest.models import TickerSnapshot, Agg
 from .utils import calculate_overnight_change, validate_ticker_data, find_ny_times_in_data
+import json
 
 
 class GapAnalyzer:
@@ -257,37 +260,48 @@ class GapAnalyzer:
             'gapped_count': len(gapped_stocks)
         }
 
-    def get_overnight_reference_time_prices(self, tickers, start_date, target_times=None, print_outputs=False):
+    def get_overnight_reference_time_prices(self, tickers, start_date, print_data_to_file=False, verbose=False):
         """
         Get close prices at specific NY times for a given ticker.
         
         Args:
             tickers (list): List of ticker symbols to look up
-            target_times (list): List of (hour, minute) tuples for target times
+            reference_times (list): List of (hour, minute) tuples for target times
             
         Returns:
             list: List of matching records with NY time and close price
         """
-        if target_times is None:
-            target_times = [(9, 30), (10, 30), (12, 0)]
 
         # Load historical data for the ticker
         ticker_reference_prices = []
         for ticker in tickers:
-            ticker_quotes = self.client.list_aggs(
+            ticker_1m_bars = []
+            for bar in self.client.list_aggs(
                 ticker,
                 1,
-                "day",
+                "minute",
                 start_date,
                 start_date,
                 adjusted="true",
                 sort="asc",
                 limit=5000,
-            )
-            if (print_outputs):
-                print(f"Ticker: {ticker}, Quotes: {ticker_quotes}")
-            ticker_reference_prices.append(find_ny_times_in_data(ticker_quotes, target_times))
+            ):
+                ticker_1m_bars.append(bar)
+            
+            # Convert ticker_1m_bars to a list of dicts for easier handling
+            bars_as_dicts = [bar.__dict__ if hasattr(bar, '__dict__') else dict(bar) for bar in ticker_1m_bars]
+            one_min_bars_df = pd.DataFrame(bars_as_dicts)
+            ticker_reference_prices.append(find_ny_times_in_data(ticker, one_min_bars_df))
+            if (print_data_to_file):
+                with open(f"{ticker}_quotes_{start_date}.json", "w") as jsonfile:
+                    if ticker_1m_bars and hasattr(ticker_1m_bars[0], '__dict__'):
+                        json.dump([quote.__dict__ for quote in ticker_1m_bars], jsonfile, indent=2)
+                    else:
+                        json.dump([str(quote) for quote in ticker_1m_bars], jsonfile, indent=2)
 
+            if (verbose):
+                print(one_min_bars_df)
+        
         # Find matching records
 
         return ticker_reference_prices

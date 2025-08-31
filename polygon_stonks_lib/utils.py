@@ -16,11 +16,23 @@ def parse_arguments():
     parser.add_argument(
         "--api-key", 
         type=str, 
-        default="8N6bwNZ7awkAPNHQySbg8eQVI_yM6OTD",
+        default="oPNvU_u9B3eHFJrSG7ppDrnP4HGmgPqU",
         help="Polygon.io API key"
     )
+
+    # Optional arguments        
+    parser.add_argument(
+        "--verbose", 
+        action="store_true",
+        help="Enable verbose output"
+    )
     
-    # Optional arguments
+    parser.add_argument(
+        "--print-data-to-file", 
+        action="store_true",
+        help="Enable printing data to a file"
+    )
+
     parser.add_argument(
         "--start-date", 
         type=str, 
@@ -69,13 +81,7 @@ def parse_arguments():
         type=str, 
         help="Save results to CSV file (optional)"
     )
-    
-    parser.add_argument(
-        "--verbose", 
-        action="store_true",
-        help="Enable verbose output"
-    )
-    
+        
     parser.add_argument(
         "--pre-market", 
         type=str, 
@@ -239,29 +245,133 @@ def timestamp_to_ny_time(timestamp_ms):
     
     return ny_dt
 
-def is_target_time(ny_datetime, target_times):
+def is_target_time(ny_datetime, reference_time):
     """
     Check if the NY datetime matches any of our target times.
     
     Args:
         ny_datetime (datetime): DateTime in NY timezone
-        target_times (list): List of target times as (hour, minute) tuples
-        
+        reference_time (list): List of reference times as (hour, minute) tuples
+
     Returns:
         str or None: Description of matched time, or None if no match
     """
     current_time = (ny_datetime.hour, ny_datetime.minute)
+
+    if (abs(current_time[0] - reference_time[0]) == 0 and
+        abs(current_time[1] - reference_time[1]) == 0):
+        return True
     
-    time_labels = {
-        (9, 30): "9:30 AM",
-        (10, 30): "10:30 AM", 
-        (12, 0): "12:00 PM"
+    return False
+
+def is_within_hours(ny_datetime, start_time, end_time):
+    """
+    Check if the NY datetime is within specified hours.
+    
+    Args:
+        ny_datetime (datetime): DateTime in NY timezone
+
+    Returns:
+        boolean or None: True if current_time is within specified hours
+    """
+    current_time = (ny_datetime.hour, ny_datetime.minute)
+    
+    # Check if current_time is between the specified hours
+    #start_time = (9, 30)
+    #end_time = (16, 0)
+    if ((current_time[0] > start_time[0] or (current_time[0] == start_time[0] and current_time[1] >= start_time[1])) and
+        (current_time[0] < end_time[0] or (current_time[0] == end_time[0] and current_time[1] <= end_time[1]))):
+        return True
+    
+    return False
+ 
+def find_ny_times_in_data(ticker, bars_data):
+    """
+    Find close prices at specific NY times in the data.
+    
+    Args:
+        bars_data: DataFrame containing timestamp and close price information
+            
+    Returns:
+        list: List of matching records with NY time and close price
+    """    
+    results = []
+    day_high = 0
+    day_low = float('inf')
+    high_before_1030 = 0
+    low_before_1030 = float('inf')
+    high_before_1200 = 0
+    low_before_1200 = float('inf')
+    first_10_mins_turnover = 0
+    total_turnover = 0
+    total_volume = 0
+
+    # Add NY timestamp to dataframe by looping through each row
+    ny_timestamps = []
+    
+    bars_data['turnover'] = bars_data['volume'] * bars_data['vwap']
+
+    for index, row in bars_data.iterrows():
+        timestamp = row['timestamp']
+        close_price = row['close']
+        high_price = row['high']
+        low_price = row['low']
+
+        ny_time = timestamp_to_ny_time(timestamp)
+        ny_timestamps.append(ny_time)
+        is_trading_hours = is_within_hours(ny_time, (9, 30), (16, 0))
+        is_before_1030 = is_within_hours(ny_time, (9, 30), (10, 30))
+        is_before_1200 = is_within_hours(ny_time, (10, 30), (12, 0))
+        is_first_10_mins = is_within_hours(ny_time, (9, 30), (9, 40))
+        is_0930 = is_target_time(ny_time, (9, 30))
+        is_1030 = is_target_time(ny_time, (10, 30))
+        is_1200 = is_target_time(ny_time, (12, 0))
+        is_1600 = is_target_time(ny_time, (16, 0))
+
+        if is_trading_hours:
+            if high_price > day_high:
+                high_time = ny_time.time()
+            day_high = max(day_high, high_price)
+            if low_price < day_low:
+                low_time = ny_time.time()
+            day_low = min(day_low, low_price)
+            total_turnover += row['turnover']
+            total_volume += row['volume']
+        if is_before_1030:
+            high_before_1030 = max(high_before_1030, high_price)
+        if is_before_1200:
+            high_before_1200 = max(high_before_1200, high_price)
+        if is_first_10_mins:
+            first_10_mins_turnover += row['turnover']
+        if is_0930:
+            day_open_price = row['open']
+        if is_1030:
+            price_at_1030 = close_price
+        if is_1200:
+            price_at_1200 = close_price
+        if is_1600:
+            day_close_price = close_price
+
+    results = {
+        'date': ny_time.date(),
+        'ticker': ticker,
+        'open_price': day_open_price,
+        'day_high': day_high,
+        'day_low': day_low,
+        'day_close_price': day_close_price,
+        'vwap': total_turnover / total_volume if total_volume > 0 else 0,
+        'total_turnover': total_turnover,
+        'first_10_mins_turnover': first_10_mins_turnover,
+        'high_before_1030': high_before_1030,
+        'high_before_1200': high_before_1200,
+        'price_at_1030': price_at_1030,
+        'price_at_1200': price_at_1200,
+        'high_time': high_time,
+        'low_time': low_time
     }
     
-    for target_hour, target_minute in target_times:
-        # Allow for some tolerance (within 1 minute)
-        if (abs(current_time[0] - target_hour) == 0 and 
-            abs(current_time[1] - target_minute) <= 1):
-            return time_labels.get((target_hour, target_minute), f"{target_hour}:{target_minute:02d}")
+    # Add the new column to the dataframe
+    bars_data['ny_timestamp'] = ny_timestamps
     
-    return None
+    return results
+
