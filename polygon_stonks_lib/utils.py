@@ -19,6 +19,13 @@ def parse_arguments():
         default="oPNvU_u9B3eHFJrSG7ppDrnP4HGmgPqU",
         help="Polygon.io API key"
     )
+    
+    parser.add_argument(
+        "--mac-or-pc", 
+        type=str, 
+        default="mac",
+        help="Specify if running on Mac or PC"
+    )
 
     # Optional arguments        
     parser.add_argument(
@@ -275,7 +282,7 @@ def is_within_hours(ny_datetime, start_time, end_time):
         boolean or None: True if current_time is within specified hours
     """
     current_time = (ny_datetime.hour, ny_datetime.minute)
-    
+
     # Check if current_time is between the specified hours
     #start_time = (9, 30)
     #end_time = (16, 0)
@@ -284,7 +291,7 @@ def is_within_hours(ny_datetime, start_time, end_time):
         return True
     
     return False
- 
+
 def find_ny_times_in_data(ticker, bars_data):
     """
     Find close prices at specific NY times in the data.
@@ -308,13 +315,12 @@ def find_ny_times_in_data(ticker, bars_data):
 
     # Add NY timestamp to dataframe by looping through each row
     ny_timestamps = []
-    
+
     bars_data['turnover'] = bars_data['volume'] * bars_data['vwap']
 
     for index, row in bars_data.iterrows():
         timestamp = row['timestamp']
         close_price = row['close']
-
         ny_time = timestamp_to_ny_time(timestamp)
         ny_timestamps.append(ny_time)
         is_trading_hours = is_within_hours(ny_time, (9, 30), (16, 0))
@@ -369,9 +375,9 @@ def find_ny_times_in_data(ticker, bars_data):
         'high_time': high_time,
         'low_time': low_time
     }
-    
+
     # Add the new column to the dataframe
     bars_data['ny_timestamp'] = ny_timestamps
-    
+
     return results
 
