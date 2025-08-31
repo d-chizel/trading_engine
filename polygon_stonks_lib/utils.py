@@ -23,7 +23,7 @@ def parse_arguments():
     parser.add_argument(
         "--mac-or-pc", 
         type=str, 
-        default="mac",
+        default="pc",
         help="Specify if running on Mac or PC"
     )
 
