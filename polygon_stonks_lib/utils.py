@@ -19,6 +19,13 @@ def parse_arguments():
         default="oPNvU_u9B3eHFJrSG7ppDrnP4HGmgPqU",
         help="Polygon.io API key"
     )
+    
+    parser.add_argument(
+        "--mac-or-pc", 
+        type=str, 
+        default="mac",
+        help="Specify if running on Mac or PC"
+    )
 
     # Optional arguments        
     parser.add_argument(

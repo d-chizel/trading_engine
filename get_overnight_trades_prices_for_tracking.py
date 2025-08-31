@@ -16,25 +16,27 @@ def main():
     # Initialize with your API key
     api_key = args.api_key
     analyzer = GapAnalyzer(api_key)
-    
+    file_path = "D:/OneDrive/Documents/stonks_testing/intraday_prices_for_pnl_tracking/"
+    input_file = f"{file_path}trades_data.csv"
+    output_file = f"{file_path}open_high_low_close.csv"
+
     # Load CSV file
-    input_df = pd.read_csv('input.csv')
-    print("Loaded input.csv:")
+    input_df = pd.read_csv(input_file)
+    print(f"Loaded {input_file}:")
     
     overnight_data = []
 
     for index, row in input_df.iterrows():
-        date_str = pd.to_datetime(row['Date']).strftime('%Y-%m-%d')
-        ticker = row['Ticker']
+        date_str = pd.to_datetime(row['date']).strftime('%Y-%m-%d')
+        ticker = row['ticker']
 
         # Find matching times
         overnight_data.append(analyzer.get_overnight_reference_time_prices(ticker, date_str, print_data_to_file=args.print_data_to_file, verbose=args.verbose))
 
     df = pd.DataFrame(overnight_data)
     print(df)
-    df.to_csv('overnight_prices.csv', index=False)
-    print("DataFrame saved to overnight_prices.csv")
-
+    df.to_csv(output_file, index=False)
+    print(f"DataFrame saved to {output_file}")
 
 if __name__ == "__main__":
     main()
