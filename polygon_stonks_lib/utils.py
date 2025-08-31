@@ -321,7 +321,7 @@ def find_ny_times_in_data(ticker, bars_data):
         ny_timestamps.append(ny_time)
         is_trading_hours = is_within_hours(ny_time, (9, 30), (16, 0))
         is_before_1030 = is_within_hours(ny_time, (9, 30), (10, 30))
-        is_before_1200 = is_within_hours(ny_time, (10, 30), (12, 0))
+        is_before_1200 = is_within_hours(ny_time, (9, 30), (12, 0))
         is_first_10_mins = is_within_hours(ny_time, (9, 30), (9, 40))
         is_0930 = is_target_time(ny_time, (9, 30))
         is_1030 = is_target_time(ny_time, (10, 30))
