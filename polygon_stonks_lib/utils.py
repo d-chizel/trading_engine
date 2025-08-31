@@ -314,8 +314,6 @@ def find_ny_times_in_data(ticker, bars_data):
     for index, row in bars_data.iterrows():
         timestamp = row['timestamp']
         close_price = row['close']
-        high_price = row['high']
-        low_price = row['low']
 
         ny_time = timestamp_to_ny_time(timestamp)
         ny_timestamps.append(ny_time)
@@ -329,9 +327,11 @@ def find_ny_times_in_data(ticker, bars_data):
         is_1600 = is_target_time(ny_time, (16, 0))
 
         if is_trading_hours:
+            high_price = row['high']
             if high_price > day_high:
                 high_time = ny_time.time()
             day_high = max(day_high, high_price)
+            low_price = row['low']
             if low_price < day_low:
                 low_time = ny_time.time()
             day_low = min(day_low, low_price)
