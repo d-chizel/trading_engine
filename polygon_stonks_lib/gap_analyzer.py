@@ -90,7 +90,7 @@ class GapAnalyzer:
 
     def filter_tickers_by_market_cap(self, tickers_array, min_market_cap=1e5, max_market_cap=2e9):
         """
-        Filter snapshot data by minimum market cap.
+        Filter snapshot data by minimum market cap, excluding non common stock.
         
         Args:
             min_market_cap (float): Minimum market cap to filter by
