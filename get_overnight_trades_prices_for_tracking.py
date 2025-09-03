@@ -37,6 +37,7 @@ def main():
 
         # Find matching times
         overnight_data.append(analyzer.get_overnight_reference_time_prices(ticker, date_str, print_data_to_file=args.print_data_to_file, verbose=args.verbose))
+        print(f"Processed {ticker} for {date_str}")
 
     df = pd.DataFrame(overnight_data)
     print(df)
