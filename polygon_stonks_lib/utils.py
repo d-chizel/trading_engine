@@ -91,9 +91,7 @@ def parse_arguments():
         
     parser.add_argument(
         "--pre-market", 
-        type=str, 
-        choices=["true", "false"],
-        default="true",
+        action="store_true",
         help="Enable pre-market analysis"
     )
     

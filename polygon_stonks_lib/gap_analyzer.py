@@ -247,7 +247,7 @@ class GapAnalyzer:
         if not self.snapshot_data:
            self.fetch_snapshot()
         
-        if pre_market.lower() == "true":
+        if pre_market:
             gapped_stocks = self.get_premarket_gapped_stocks(gap_threshold, gap_direction)
             #dataframe = self.create_dataframe()
         else:
