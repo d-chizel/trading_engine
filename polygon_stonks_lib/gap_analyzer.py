@@ -233,7 +233,7 @@ class GapAnalyzer:
         
         return pd.DataFrame(data_rows)
     
-    def analyze_gaps(self, gap_threshold=0.2, gap_direction="up", pre_market="true"):
+    def analyze_gaps(self, gap_threshold=0.2, gap_direction="up", pre_market="false"):
         """
         Perform complete gap analysis and return both gapped stocks and DataFrame.
         
