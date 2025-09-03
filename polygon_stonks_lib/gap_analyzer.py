@@ -7,7 +7,7 @@ from xmlrpc import client
 import pandas as pd
 from polygon import RESTClient
 from polygon.rest.models import TickerSnapshot, Agg
-from .utils import calculate_overnight_change, validate_ticker_data, find_ny_times_in_data
+from .utils import calculate_overnight_change, validate_ticker_data, find_ny_times_in_data, get_daily_ohlc
 import json
 
 
@@ -90,7 +90,7 @@ class GapAnalyzer:
 
     def filter_tickers_by_market_cap(self, tickers_array, min_market_cap=1e5, max_market_cap=2e9):
         """
-        Filter snapshot data by minimum market cap.
+        Filter snapshot data by minimum market cap, excluding non common stock.
         
         Args:
             min_market_cap (float): Minimum market cap to filter by
@@ -285,11 +285,20 @@ class GapAnalyzer:
             limit=5000,
         ):
             ticker_1m_bars.append(bar)
-        
+
+        ticker_daily_bars = self.client.get_daily_open_close_agg(
+            ticker,
+            start_date,
+            adjusted="true",
+        )
+                
         # Convert ticker_1m_bars to a list of dicts for easier handling
         bars_as_dicts = [bar.__dict__ if hasattr(bar, '__dict__') else dict(bar) for bar in ticker_1m_bars]
         one_min_bars_df = pd.DataFrame(bars_as_dicts)
+        # Convert ticker_daily_bars to a DataFrame
+        ticker_daily_bars_dict = ticker_daily_bars.__dict__ if hasattr(ticker_daily_bars, '__dict__') else dict(ticker_daily_bars)
         ticker_reference_prices = find_ny_times_in_data(ticker, one_min_bars_df)
+        daily_ohlc = get_daily_ohlc(ticker_daily_bars_dict)
         if (print_data_to_file):
             with open(f"{ticker}_quotes_{start_date}.json", "w") as jsonfile:
                 if ticker_1m_bars and hasattr(ticker_1m_bars[0], '__dict__'):
@@ -299,7 +308,25 @@ class GapAnalyzer:
 
         if (verbose):
             print(one_min_bars_df)
+            
+        results = {
+            "ticker": ticker,
+            "date": start_date,
+            "open_price": daily_ohlc['open'],
+            "high_price": daily_ohlc['high'],
+            "low_price": daily_ohlc['low'],
+            "close_price": daily_ohlc['close'],
+            'vwap': ticker_reference_prices['vwap'],
+            'total_turnover': ticker_reference_prices['total_turnover'],
+            'first_10_mins_turnover': ticker_reference_prices['first_10_mins_turnover'],
+            'high_before_1030': ticker_reference_prices['high_before_1030'],
+            'high_before_1200': ticker_reference_prices['high_before_1200'],
+            'price_at_1030': ticker_reference_prices['price_at_1030'],
+            'price_at_1200': ticker_reference_prices['price_at_1200'],
+            'high_time': ticker_reference_prices['high_time'],
+            'low_time': ticker_reference_prices['low_time']
+        }
         
         # Find matching records
 
-        return ticker_reference_prices
+        return results

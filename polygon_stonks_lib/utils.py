@@ -306,9 +306,7 @@ def find_ny_times_in_data(ticker, bars_data):
     day_high = 0
     day_low = float('inf')
     high_before_1030 = 0
-    low_before_1030 = float('inf')
     high_before_1200 = 0
-    low_before_1200 = float('inf')
     first_10_mins_turnover = 0
     total_turnover = 0
     total_volume = 0
@@ -317,6 +315,12 @@ def find_ny_times_in_data(ticker, bars_data):
     ny_timestamps = []
 
     bars_data['turnover'] = bars_data['volume'] * bars_data['vwap']
+
+    last_close_price = 0
+    price_at_1030 = 0
+    price_at_1200 = 0
+    high_time = None
+    low_time = None
 
     for index, row in bars_data.iterrows():
         timestamp = row['timestamp']
@@ -327,10 +331,6 @@ def find_ny_times_in_data(ticker, bars_data):
         is_before_1030 = is_within_hours(ny_time, (9, 30), (10, 30))
         is_before_1200 = is_within_hours(ny_time, (9, 30), (12, 0))
         is_first_10_mins = is_within_hours(ny_time, (9, 30), (9, 40))
-        is_0930 = is_target_time(ny_time, (9, 30))
-        is_1030 = is_target_time(ny_time, (10, 30))
-        is_1200 = is_target_time(ny_time, (12, 0))
-        is_1600 = is_target_time(ny_time, (16, 0))
 
         if is_trading_hours:
             high_price = row['high']
@@ -349,22 +349,14 @@ def find_ny_times_in_data(ticker, bars_data):
             high_before_1200 = max(high_before_1200, high_price)
         if is_first_10_mins:
             first_10_mins_turnover += row['turnover']
-        if is_0930:
-            day_open_price = row['open']
-        if is_1030:
+        if is_before_1030:
             price_at_1030 = close_price
-        if is_1200:
+        if is_before_1200:
             price_at_1200 = close_price
-        if is_1600:
-            day_close_price = close_price
-
+            
     results = {
         'date': ny_time.date(),
         'ticker': ticker,
-        'open_price': day_open_price,
-        'day_high': day_high,
-        'day_low': day_low,
-        'day_close_price': day_close_price,
         'vwap': total_turnover / total_volume if total_volume > 0 else 0,
         'total_turnover': total_turnover,
         'first_10_mins_turnover': first_10_mins_turnover,
@@ -380,4 +372,33 @@ def find_ny_times_in_data(ticker, bars_data):
     bars_data['ny_timestamp'] = ny_timestamps
 
     return results
+
+def get_daily_ohlc(bars_data):
+    """
+    Calculate daily OHLC (Open, High, Low, Close) from intraday bars data.
+
+    Args:
+        bars_data (pd.DataFrame): DataFrame containing intraday bars data with columns ['timestamp', 'open', 'high', 'low', 'close']
+
+    Returns:
+        dict: Dictionary with daily OHLC values
+    """
+    if bars_data is None:
+        return None
+
+    ticker = bars_data['symbol']
+    date = bars_data['from_']
+    daily_open = bars_data['open']
+    daily_high = bars_data['high']
+    daily_low = bars_data['low']
+    daily_close = bars_data['close']
+
+    return {
+        'date': date,
+        'ticker': ticker,
+        'open': daily_open,
+        'high': daily_high,
+        'low': daily_low,
+        'close': daily_close
+    }
 
