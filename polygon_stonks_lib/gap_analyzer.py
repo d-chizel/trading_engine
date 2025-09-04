@@ -310,8 +310,8 @@ class GapAnalyzer:
             print(one_min_bars_df)
             
         results = {
-            "ticker": ticker,
             "date": start_date,
+            "ticker": ticker,
             "open_price": daily_ohlc['open'],
             "high_price": daily_ohlc['high'],
             "low_price": daily_ohlc['low'],
