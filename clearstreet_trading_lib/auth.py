@@ -47,7 +47,7 @@ class OAuth2Handler:
         }
         
         payload = {
-            'grant_type': 'client_credentials',
+            "grant_type": "client_credentials",
             "audience": "https://api.clearstreet.io",
             "client_id": self.client_id,
             "client_secret": self.client_secret

@@ -284,3 +284,23 @@ class ClearStreetClient:
             price=price
         )
         return self.place_order(order_request)
+    
+    # Locate Methods
+    def locate_orders(self, symbol: str, quantity: int, mpid: str, reference_id: str, comments: str) -> Dict[str, Any]:
+        """
+        Request a locate for short selling.
+        
+        Args:
+            symbol (str): Stock symbol
+            quantity (int): Number of shares to locate
+            
+        Returns:
+            dict: Locate response
+        """
+        response = self._make_get_request(
+            'POST', 
+            f'/studio/v2/accounts/{self.account_id}/locate-orders',
+            json={'symbol': symbol, 'quantity': quantity, 'mpid': mpid, 'reference_id': reference_id, 'comments': comments}
+        )
+        return response.json()
+

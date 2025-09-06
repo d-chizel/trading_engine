@@ -17,6 +17,10 @@ def main():
     )
     
     try:
+        # Get account information
+        print("=== Account Information ===")
+        account = client.get_account()
+        
         # Get Instrument
         print("=== Instrument ===")
         instrument = client.get_instruments('AAPL')
