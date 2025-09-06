@@ -27,24 +27,8 @@ def main():
     )
     
     # Display results
-    #print(f"\nTotal stocks analyzed: {results['total_stocks']}")
-    #print(f"Stocks that gap up more than 20%: {results['gapped_count']}")
-    #print(f"Gapped stocks: {results['gapped_stocks'][:]}")  # Show all
     print(f"Filtered stocks by market cap: {filtered_results[:]}")  # Show all
     print(f"Filtered stocks that gap up more than 20%: {len(filtered_results)}")
-    
-    """
-    # Display DataFrame info for testing only
-    df = results['dataframe']
-    print(f"\nDataFrame shape: {df.shape}")
-    print("\nFirst 5 rows:")
-    print(df[:5])
-    
-    # Save DataFrame to CSV file for testing only
-    csv_filename = "stock_analysis_results.csv"
-    df.to_csv(csv_filename, index=False)
-    print(f"\nDataFrame saved to {csv_filename}")
-    """
 
 if __name__ == "__main__":
     main()

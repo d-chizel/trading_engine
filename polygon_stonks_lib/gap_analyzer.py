@@ -28,7 +28,7 @@ class GapAnalyzer:
         
     def fetch_snapshot(self, market_type="stocks", include_otc='false'):
         """
-        Fetch snapshot data from Polygon.io API.
+        Fetch full market snapshot data from Polygon.io API.
         
         Args:
             market_type (str): Type of market data to fetch (default: "stocks")
