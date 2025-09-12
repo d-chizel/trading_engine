@@ -13,7 +13,8 @@ def main():
     # Initialize client with your credentials
     client = ClearStreetClient(
         client_id="peHRscbk4tio7g4fPpe1XK8cOAlXqTvL",
-        client_secret="bGeu70ZimnTdw7oXUcDfXeAKibQwpKHcpaLLi_5RTaijW2iTOMpTHo6Ul2Tr5Dvm"
+        client_secret="bGeu70ZimnTdw7oXUcDfXeAKibQwpKHcpaLLi_5RTaijW2iTOMpTHo6Ul2Tr5Dvm",
+        account_id="115147"
     )
     
     try:

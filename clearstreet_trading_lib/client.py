@@ -13,7 +13,7 @@ class ClearStreetClient:
     Main client for interacting with ClearStreet Trading API.
     """
 
-    def __init__(self, client_id: str, client_secret: str, base_url: str = "https://api.clearstreet.io"):
+    def __init__(self, client_id: str, client_secret: str, account_id: str, base_url: str = "https://api.clearstreet.io"):
         """
         Initialize ClearStreet client.
         
@@ -24,6 +24,7 @@ class ClearStreetClient:
         """
         self.base_url = base_url
         self.auth = OAuth2Handler(client_id, client_secret, base_url)
+        self.account_id = account_id
     
     def _make_get_request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
         """
@@ -50,7 +51,7 @@ class ClearStreetClient:
         return response
     
     # Account Methods
-    def get_account(self) -> Account:
+    def list_accounts(self) -> Account:
         """
         Get account information.
         
@@ -58,6 +59,16 @@ class ClearStreetClient:
             Account: Account details
         """
         response = self._make_get_request('get', '/studio/v2/accounts')
+        return Account.from_dict(response.json())
+    
+    def get_account(self) -> Account:
+        """
+        Get account information.
+        
+        Returns:
+            Account: Account details
+        """
+        response = self._make_get_request('get', f'/studio/v2/accounts/"{self.account_id}"')
         return Account.from_dict(response.json())
     
     def get_account_balance(self) -> Dict[str, float]:

@@ -13,29 +13,20 @@ class Account:
     Represents a trading account.
     """
     account_id: str
-    account_type: str
-    status: str
-    buying_power: float
-    cash_balance: float
-    equity: float
-    initial_margin: float
-    maintenance_margin: float
-    currency: str = "USD"
+    account_number: str
+    entity_id: str
+    name: str
     
     @classmethod
     def from_dict(cls, data: dict):
         """Create Account from API response data."""
         return cls(
             account_id=data.get('account_id', ''),
-            account_type=data.get('account_type', ''),
-            status=data.get('status', ''),
-            buying_power=float(data.get('buying_power', 0)),
-            cash_balance=float(data.get('cash_balance', 0)),
-            equity=float(data.get('equity', 0)),
-            initial_margin=float(data.get('initial_margin', 0)),
-            maintenance_margin=float(data.get('maintenance_margin', 0)),
-            currency=data.get('currency', 'USD')
+            account_number=data.get('account_number', ''),
+            entity_id=data.get('entity_id', ''),
+            name=data.get('name', '')
         )
+        
 
 
 @dataclass
