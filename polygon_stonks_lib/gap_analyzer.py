@@ -10,7 +10,6 @@ from polygon.rest.models import TickerSnapshot, Agg
 from .utils import calculate_overnight_change, validate_ticker_data, find_ny_times_in_data, get_daily_ohlc
 import json
 
-
 class GapAnalyzer:
     """
     A class for analyzing stock gaps using Polygon.io API data.
