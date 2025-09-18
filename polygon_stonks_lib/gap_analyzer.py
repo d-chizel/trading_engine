@@ -121,9 +121,9 @@ class GapAnalyzer:
 
         return filtered_tickers
 
-    def get_premarket_gapped_stocks(self, gap_threshold=0.2, gap_direction="up"):
+    def get_premarket_gapped_stocks(self, gap_threshold=0.2, gap_direction="up", price_threshold=1.5):
         """
-        Get stocks that have gapped based on the threshold.
+        Get stocks that have gapped based on the gap threshold where the stock price is higher than 1.5.
         
         Args:
             gap_threshold (float): Minimum gap percentage (as decimal, e.g., 0.2 for 20%)
@@ -149,19 +149,19 @@ class GapAnalyzer:
                     )
                     
                     # Check gap direction
-                    if gap_direction == "down" and overnight_change < -gap_threshold:
+                    if gap_direction == "down" and overnight_change < -gap_threshold and item.last_quote.bid_price >= price_threshold:
                         gapped_stocks.append(item.ticker)
-                    elif gap_direction == "up" and overnight_change > gap_threshold:
+                    elif gap_direction == "up" and overnight_change > gap_threshold and item.last_quote.bid_price >= price_threshold:
                         gapped_stocks.append(item.ticker)
-                    elif gap_direction == "both" and abs(overnight_change) > gap_threshold:
+                    elif gap_direction == "both" and abs(overnight_change) > gap_threshold and item.last_quote.bid_price >= price_threshold:
                         gapped_stocks.append(item.ticker)
         
         print(gapped_stocks)
         return gapped_stocks
     
-    def get_overnight_gapped_stocks(self, gap_threshold=0.2, gap_direction="up"):
+    def get_overnight_gapped_stocks(self, gap_threshold=0.2, gap_direction="up", price_threshold=1.5):
         """
-        Get stocks that have gapped based on the threshold.
+        Get stocks that have gapped based on the gap threshold where the stock price is higher than 1.5.
         
         Args:
             gap_threshold (float): Minimum gap percentage (as decimal, e.g., 0.2 for 20%)
@@ -187,11 +187,11 @@ class GapAnalyzer:
                     )
                     
                     # Check gap direction
-                    if gap_direction == "down" and overnight_change < -gap_threshold:
+                    if gap_direction == "down" and overnight_change < -gap_threshold and item.day.open >= price_threshold:
                         gapped_stocks.append(item.ticker)
-                    elif gap_direction == "up" and overnight_change > gap_threshold:
+                    elif gap_direction == "up" and overnight_change > gap_threshold and item.day.open >= price_threshold:
                         gapped_stocks.append(item.ticker)
-                    elif gap_direction == "both" and abs(overnight_change) > gap_threshold:
+                    elif gap_direction == "both" and abs(overnight_change) > gap_threshold and item.day.open >= price_threshold:
                         gapped_stocks.append(item.ticker)
         
         print(gapped_stocks)
