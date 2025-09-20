@@ -72,7 +72,7 @@ class CmdAPI:
         #End Block
     
     #Method:Subscribe Top List
-    async def topList(self, connection):
+    async def top_list(self, connection):
         script = "SB TOPLIST"
         print(f"\nSending {script}\nNOTE: May take a Minute to load.\nLOADING DATA...\n")
         checkInput = asyncio.create_task(self.check_for_input())
@@ -112,28 +112,57 @@ class CmdAPI:
         #End Block
       
     #Method:Get Account Details
-    def accountDetails(self, connection, detailType=""):
+    def account_details(self, connection, detail_type=""):
         inp = input("\nFor Buying Power\t\t(Enter: 1)\n    Positions\t\t\t(Enter: 2)\n    Orders\t\t\t(Enter: 3)\n    Trades\t\t\t(Enter: 4)\n    Route Status\t\t(Enter: 5)\n    LDLU\t\t\t(Enter: 6)\n    Symbol Status\t\t(Enter: 7)\n    Account Info\t\t(Enter: 8)\n\n    Input: ")
         script = ""
 
-        if(detailType == "1" or detailType.upper() == "B" or detailType.upper() == "P" or detailType.upper() == "BP" or detailType.upper() == "BUYINGPOWER"):
+        if(detail_type == "1" or detail_type.upper() == "B" or detail_type.upper() == "P" or detail_type.upper() == "BP" or detail_type.upper() == "BUYINGPOWER"):
             script = "GET BP\r\n"
-        elif(detailType == "2" or detailType.upper() == "P" or detailType.upper() == "POS" or detailType.upper() == "POSITION" or detailType.upper() == "POSITIONS"):
+        elif(detail_type == "2" or detail_type.upper() == "P" or detail_type.upper() == "POS" or detail_type.upper() == "POSITION" or detail_type.upper() == "POSITIONS"):
             script = "GET POSITIONS\r\n"
-        elif(detailType == "3" or detailType.upper() == "O" or detailType.upper() == "ORD" or detailType.upper() == "ORDER" or detailType.upper() == "ORDERS"):
+        elif(detail_type == "3" or detail_type.upper() == "O" or detail_type.upper() == "ORD" or detail_type.upper() == "ORDER" or detail_type.upper() == "ORDERS"):
             script = "GET ORDERS\r\n"
-        elif(detailType == "4" or detailType.upper() == "T" or detailType.upper() == "TR" or detailType.upper() == "TRADE" or detailType.upper() == "TRADES"):
+        elif(detail_type == "4" or detail_type.upper() == "T" or detail_type.upper() == "TR" or detail_type.upper() == "TRADE" or detail_type.upper() == "TRADES"):
             script = "GET TRADES\r\n"
-        elif(detailType == "5" or detailType.upper() == "R" or detailType.upper() == "ROUTE" or detailType.upper() == "ROUTESTATUS" or detailType.upper() == "ROUTE STATUS"):
+        elif(detail_type == "5" or detail_type.upper() == "R" or detail_type.upper() == "ROUTE" or detail_type.upper() == "ROUTESTATUS" or detail_type.upper() == "ROUTE STATUS"):
             script = "GET ROUTESTATUS\r\n"
-        elif(detailType == "6" or detailType.upper() == "L" or detailType.upper() == "LD" or detailType.upper() == "LU" or detailType.upper() == "LDLU"):
-            symb = detailTypeut("\n    Enter Symbol: ")
-            script = f"GET LDLU {symb.upper()}\r\n"
-        elif(detailType == "7" or detailType.upper() == "S" or detailType.upper() == "SS" or detailType.upper() == "SYM" or detailType.upper() == "STAT" or detailType.upper() == "SYMBOL" or detailType.upper() == "STATUS" or detailType.upper() == "SYMBOLSTATUS" or detailType.upper() == "SYMBOL STATUS"):
-            symb = detailTypeut("\n    Enter Symbol: ")
-            script = f"GET SymStatus {symb.upper()}\r\n"
-        elif(detailType == "8" or detailType.upper() == "A" or detailType.upper() == "AI" or detailType.upper() == "ACC" or detailType.upper() == "IFO" or detailType.upper() == "INFO" or detailType.upper() == "AINFO" or detailType.upper() == "ACCINFO" or detailType.upper() == "ACCOUNTINFO" or detailType.upper() == "ACCOUNT INFO"):
+        elif(detail_type == "6" or detail_type.upper() == "A" or detail_type.upper() == "AI" or detail_type.upper() == "ACC" or detail_type.upper() == "IFO" or detail_type.upper() == "INFO" or detail_type.upper() == "AINFO" or detail_type.upper() == "ACCINFO" or detail_type.upper() == "ACCOUNTINFO" or detail_type.upper() == "ACCOUNT INFO"):
             script = "GET AccountInfo\r\n"
+        else:
+            print("\nNot one of the options.\n")
+            return
+
+        try: 
+            print(f"\nSending {script}")
+            retdata = connection.send_script(bytearray(script, encoding = "ascii"))
+        
+        except socket.timeout as e:
+            print(f"\nTimeout error: {e}")
+            
+        except socket.error as e:
+            print(f"\nGeneral socket error: {e}")
+            
+        except Exception as e:
+            print(f"\nException: {e}")
+            
+        finally:
+            
+            if retdata:
+                print(f"\nRecieved Data:\n{retdata}\n")
+            else:
+                print("")
+
+    #Method:Get Symbol Status Details
+    def symbol_status_details(self, connection, detail_type=""):
+        inp = input("\nFor Buying Power\t\t(Enter: 1)\n    Positions\t\t\t(Enter: 2)\n    Orders\t\t\t(Enter: 3)\n    Trades\t\t\t(Enter: 4)\n    Route Status\t\t(Enter: 5)\n    LDLU\t\t\t(Enter: 6)\n    Symbol Status\t\t(Enter: 7)\n    Account Info\t\t(Enter: 8)\n\n    Input: ")
+        script = ""
+
+        if(detail_type == "1" or detail_type.upper() == "L" or detail_type.upper() == "LD" or detail_type.upper() == "LU" or detail_type.upper() == "LDLU"):
+            symb = input("\n    Enter Symbol: ")
+            script = f"GET LDLU {symb.upper()}\r\n"
+        elif(detail_type == "2" or detail_type.upper() == "S" or detail_type.upper() == "SS" or detail_type.upper() == "SYM" or detail_type.upper() == "STAT" or detail_type.upper() == "SYMBOL" or detail_type.upper() == "STATUS" or detail_type.upper() == "SYMBOLSTATUS" or detail_type.upper() == "SYMBOL STATUS"):
+            symb = input("\n    Enter Symbol: ")
+            script = f"GET SymStatus {symb.upper()}\r\n"
         else:
             print("\nNot one of the options.\n")
             return
@@ -449,7 +478,7 @@ class CmdAPI:
         #End Block
 
     #Method:Daychart
-    def Daychart(self,connection):
+    def dayChart(self,connection):
         symbol = input("\nPlease enter a Symbol for the Daychart: ")
         curr = datetime.today()
         script = f"SB {symbol.upper()} DAYCHART {(curr - timedelta(days=50)).strftime('%Y/%m/%d')} {(curr - timedelta(days=1)).strftime('%Y/%m/%d')}" #For Daychart, subscribe to a symbol followed by 'DAYCHART' and after that enter a start date followed by an end date.
@@ -471,7 +500,7 @@ class CmdAPI:
             print(f"\n{retdata}")
     
     #Method:Minchart
-    def Minchart(self, connection):
+    def minChart(self, connection):
         symbol = input("\nPlease enter a Symbol for the Minchart: ")
         curr = datetime.today()
         script = f"SB {symbol.upper()} MINCHART {(curr - timedelta(days=8)).strftime('%Y/%m/%d')}-00:00 {(curr - timedelta(days=7)).strftime('%Y/%m/%d')}-00:00" #Similiar to Daychart, Instead replace with 'MINCHART'. after the date '00:00' indicates 12am of that date.
@@ -495,7 +524,7 @@ class CmdAPI:
     #--------------------------------------------------SHORT LOCATE COMMANDS--------------------------------------------------#
     
     #Method:SLPriceInquire
-    def SLPriceInquire(self, connection):
+    def short_locate_price_inquire(self, connection):
         symbol = input("\nPlease enter a symbol for a short locate inquery: ")
         script = f"SLPRICEINQUIRE {symbol.upper()} 100 TESTSL"
         print(f"\nSending {script}")
