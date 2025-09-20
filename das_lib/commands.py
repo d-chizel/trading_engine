@@ -188,7 +188,7 @@ class CmdAPI:
                 print("")
         
     #Method:Submit Order
-    def submitOrder(self, connection):
+    def submit_order(self, connection):
         unID = int(self.uniq)
         inp = input("\nSubmit Limit Order\t\t\t\t(Enter: 1)\n       Market Order\t\t\t\t(Enter: 2)\n       Stop Limit Order\t\t\t\t(Enter: 3)\n       Stop Market Order\t\t\t(Enter: 4)\n       Stop Range Order\t\t\t\t(Enter: 5)\n       Stop Range Market Order\t\t\t(Enter: 6)\n       Stop Trailing Order\t\t\t(Enter: 7)\n       Complex Order\t\t\t\t(Enter: 8)\n\n       Input: ")
         script = ""
@@ -361,7 +361,7 @@ class CmdAPI:
             retdata = ""
     
     #Method:Get Short Info
-    def GetShortInfo(self, connection):
+    def get_short_info(self, connection):
         symbol = input("\nEnter Symbol: ")
         script = f"GET SHORTINFO {symbol.upper()}"
         try:
@@ -383,7 +383,7 @@ class CmdAPI:
                 print("\nTimed out / No Data Recieved\n")
 
     #Method:Replace Order
-    def ReplaceOrder(self, connection):
+    def replace_order(self, connection):
         cmd = cmdAPI()
         unID = int(self.uniq) #Unique ID
         ans = input("\nWould you like to replace an order?(Y/N) ")
@@ -412,7 +412,7 @@ class CmdAPI:
             print("Please enter yes or no.")      
 
     #Method:Cancel Order
-    def CancelOrder(self, connection):
+    def cancel_order(self, connection):
         cmd = cmdAPI()
         ans = input("\nWould you like to cancel an order?(Y/N) ")
         
@@ -439,7 +439,7 @@ class CmdAPI:
             print("Please enter yes or no.")  
 
     #Method:Cancel All Open Orders
-    def CancelAllOpenOrder(self, connection):
+    def cancel_all_open_orders(self, connection):
         cmd = cmdAPI()
         ans = input("\nWould you like to cancel all open orders?(Y/N) ")
         
@@ -478,7 +478,7 @@ class CmdAPI:
         #End Block
 
     #Method:Daychart
-    def dayChart(self,connection):
+    def day_chart(self,connection):
         symbol = input("\nPlease enter a Symbol for the Daychart: ")
         curr = datetime.today()
         script = f"SB {symbol.upper()} DAYCHART {(curr - timedelta(days=50)).strftime('%Y/%m/%d')} {(curr - timedelta(days=1)).strftime('%Y/%m/%d')}" #For Daychart, subscribe to a symbol followed by 'DAYCHART' and after that enter a start date followed by an end date.
@@ -500,7 +500,7 @@ class CmdAPI:
             print(f"\n{retdata}")
     
     #Method:Minchart
-    def minChart(self, connection):
+    def minute_chart(self, connection):
         symbol = input("\nPlease enter a Symbol for the Minchart: ")
         curr = datetime.today()
         script = f"SB {symbol.upper()} MINCHART {(curr - timedelta(days=8)).strftime('%Y/%m/%d')}-00:00 {(curr - timedelta(days=7)).strftime('%Y/%m/%d')}-00:00" #Similiar to Daychart, Instead replace with 'MINCHART'. after the date '00:00' indicates 12am of that date.
@@ -544,7 +544,7 @@ class CmdAPI:
             print(f"\n{retdata}")
     
     #Method:SLNewOrder
-    def SLNewOrder(self, connection):
+    def short_locate_new_order(self, connection):
         symbol = input("\nPlease enter a symbol for a short order: ")
         script = f"SLNEWORDER {symbol.upper()} 100 TESTSL"
         print (f"\nSending {script}")
@@ -564,9 +564,8 @@ class CmdAPI:
             print(f"\n{retdata}")
         
     #Method:SLCancelOrder
-    def SLCancelOrder(self, connection):
-        cmd = cmdAPI()
-        cmd.GetSLOrders(connection)
+    def short_locate_cancel_order(self, connection):
+        self.get_short_locate_orders(connection)
         ordID = input("\nEnter the locate order ID for cancelation: ")
         script = (f"SLCANCELORDER {ordID}")
         print(f"\nCanceling Order: {ordID}")
@@ -580,12 +579,12 @@ class CmdAPI:
             print(f"\n{retdata}")
             
     #Method:SLOfferOperation
-    def SLOfferOperation(self, connection):     #// To Accept or Reject an offer
+    def short_locate_offer_operation(self, connection):     #// To Accept or Reject an offer
         cmd = cmdAPI()
         ans = input("\nAccept or Reject:(A/R) ")
         try:
             if(ans.upper() == "A" or ans.upper() == "ACCEPT" or ans == "1" or ans.upper() == "Y" or ans.upper() == "YES"):
-                cmd.GetSLOrders(connection)
+                self.get_short_locate_orders(connection)
             
                 ordID = input("\nEnter the order ID for offer acceptance: ")
                 script = f"SLOFFEROPERATION {ordID} Accept"
@@ -594,7 +593,7 @@ class CmdAPI:
                 retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
                 print(f"\n{retdata}")
             elif(ans.upper() == "R" or ans.upper() == "REJECT" or ans == "0" or ans.upper() == "N" or ans.upper() == "NO"):
-                cmd.GetSLOrders(connection)
+                self.get_short_locate_orders(connection)
 
                 ordID = input("\nEnter the order ID for offer rejection: ")
                 script = f"SLOFFEROPERATION {ordID} Reject"
@@ -607,8 +606,8 @@ class CmdAPI:
         except Exception as e:
             print(f"\nException: {e}")
             
-    #Method:GetSLOrders
-    def GetSLOrders(self,connection):
+    #Method:get_short_locate_orders gets short locate orders
+    def get_short_locate_orders(self,connection):
         script = "GET LOCATES"
         try:
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
