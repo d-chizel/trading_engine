@@ -32,8 +32,7 @@ class CmdAPI:
             return
 
         script = f"ReturnFullLv1 YES\nSB {symbol.upper()} {actualLvl}\r\n"
-        
-        checkInput = asyncio.create_task(self.check_for_input())
+
         print(f"\nSending:\n{script}\nNOTE: Depending on the Market Time and Symbol, data retrieval may take some time.")
         datStream = True
         retdata = ""
@@ -47,13 +46,13 @@ class CmdAPI:
                     #    print("")
                 else:
                     retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
-                    print(retdata)
+                    print("retdata is not empty")
             
-                done, pending = await asyncio.wait([checkInput], timeout = 0, return_when=asyncio.FIRST_COMPLETED) #//First paramter - checkInput which holds the thread, timeout = 0 checks if the task is complete without blocking the loop, return_when first completed literally returns the result as soon as the task is completed.
-                if(checkInput in done):
-                    datStream = False
-                    checkInput.cancel()
-                    await checkInput
+                datStream = False
+                print(f"retdata type: {type(retdata)}")
+                print(retdata)
+                await asyncio.sleep(10)
+                print(retdata)
             
         except socket.timeout as e:
             print(f"\nTimeout error: {e}")
@@ -66,8 +65,6 @@ class CmdAPI:
          
         finally:
             retdata = "" #Empty the buffer
-            checkInput.cancel()
-            await checkInput
             connection.send_script(bytearray(f"UNSB {symbol.upper()} {actualLvl}\r\n", encoding = "ascii")) #Unsub from symbol
         #End Block
     
