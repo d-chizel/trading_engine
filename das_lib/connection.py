@@ -10,12 +10,12 @@ class Connection:
         self.s.connect((host, port))
         sleep(0.1)
         
-    def ConnectToServer(self):
+    def connect_to_server(self):
         
         sleep(0.1)
-        self.Connect("127.0.0.1",9800)
+        self.connect("127.0.0.1",9800)
         ba=bytearray("LOGIN "+"USER"+" "+"PASSWORD"+" "+"ACCOUNT"+"\r\n",encoding="ascii") #// Input your own USERID -- PASSWORD -- ACCOUNT
-        self.Login(ba)
+        self.login(ba)
         #self.SendScript(bytearray("SCRIPT GLOBALSCRIPT SwitchDesktop default"+"\r\n",encoding="ascii"))
 
     def login(self, login_data):
