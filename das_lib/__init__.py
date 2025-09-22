@@ -8,6 +8,6 @@ __email__ = "hedgie.shenanigans@gmail.com"
 
 from .connection import Connection
 from .commands import CmdAPI
-from .utils import format_script
+from .utils import Utils
 
-__all__ = ["Connection", "CmdAPI", "format_script"]
+__all__ = ["Connection", "CmdAPI", "Utils"]

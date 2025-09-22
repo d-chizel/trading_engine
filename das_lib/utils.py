@@ -1,6 +1,6 @@
 class Utils:
     """
-    Utility to format scripts for DAS commands.
+    Utilities for processing data retrieved from DAS.
     """
     
     def __init__(self):

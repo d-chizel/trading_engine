@@ -1,5 +1,5 @@
 import asyncio
-from das_lib import Connection, CmdAPI
+from das_lib import Connection, CmdAPI, Utils
 
 async def main():
     
@@ -21,8 +21,9 @@ async def main():
             5.1. If the position is a short position, place a stop loss buy to cover order at 100% above the short sale price
         6. Disconnect from DAS
     '''
-    
+    utils = Utils()
     cmd = CmdAPI()
+    
     with Connection() as connection:
         try:
             connection.connect_to_server()

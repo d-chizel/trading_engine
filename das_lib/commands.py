@@ -51,8 +51,6 @@ class CmdAPI:
                 datStream = False
                 print(f"retdata type: {type(retdata)}")
                 print(retdata)
-                await asyncio.sleep(10)
-                print(retdata)
             
         except socket.timeout as e:
             print(f"\nTimeout error: {e}")
