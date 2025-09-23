@@ -95,6 +95,13 @@ def parse_arguments():
         help="Enable pre-market analysis"
     )
     
+    parser.add_argument(
+        "--short-size", 
+        type=float, 
+        default=1000,
+        help="Amount to short. Default: 1000"
+    )
+    
     return parser.parse_args()
 
 def parse_date(date_string):

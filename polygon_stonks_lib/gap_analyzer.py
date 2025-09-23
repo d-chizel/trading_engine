@@ -24,7 +24,11 @@ class GapAnalyzer:
         """
         self.client = RESTClient(api_key)
         self.snapshot_data = None
-        
+    
+    def fetch_last_quote(self, ticker):
+        self.last_quote = self.client.get_last_quote(ticker)
+        return self.last_quote
+    
     def fetch_snapshot(self, market_type="stocks", include_otc='false'):
         """
         Fetch full market snapshot data from Polygon.io API.
@@ -329,5 +333,19 @@ class GapAnalyzer:
         }
         
         # Find matching records
-
         return results
+
+    def get_locate_shares_amount(self, short_size, price):
+        """
+        Calculate number of shares to short based on dollar amount and stock price.
+        """
+        shares = int(short_size // price)
+        shares_rounded = (shares // 100) * 100
+        if shares_rounded == 0:
+            shares_rounded = 100
+        if shares % 100 == 0:
+            return shares_rounded
+        elif shares % 100 <= 20:
+            return shares_rounded
+        else:
+            return shares_rounded + 100

@@ -4,10 +4,17 @@ Identifies the stocks within a market cap band that have gapped overnight.
 
 from polygon_stonks_lib import GapAnalyzer
 from polygon_stonks_lib.utils import parse_arguments
+import pandas as pd
 
 def main():
     # Parse command line arguments
     args = parse_arguments()
+    
+    file_path = "D:/OneDrive/Documents/stonks_testing/"
+    file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
+    if args.mac_or_pc == "mac":
+        file_path = file_path_mac
+
     
     # Initialize with your API key
     api_key = "oPNvU_u9B3eHFJrSG7ppDrnP4HGmgPqU"
@@ -29,6 +36,22 @@ def main():
     # Display results
     print(f"Filtered stocks by market cap: {filtered_results[:]}")  # Show all
     print(f"Filtered stocks that gap up more than 20%: {len(filtered_results)}")
+    
+    ticker_dict = {}
+    for ticker in filtered_results:
+        last_quote = analyzer.fetch_last_quote(ticker)
+        
+        if last_quote and last_quote.bid_price > 0:
+            shares_to_locate = analyzer.get_locate_shares_amount(args.short_size, last_quote.bid_price)
+            ticker_dict[ticker] = {"last_quote_bid": last_quote.bid_price, "shares_to_locate": shares_to_locate}
+            #print(f"{ticker} - Bid Price: {last_quote.bid_price}, Shares to Short: {shares_to_short}")
+            
+    df = pd.DataFrame.from_dict(ticker_dict, orient='index')
+    df.index.name = 'ticker'
+    df.reset_index(inplace=True)
+    print(df)
+
+    df.to_csv(f"{file_path}overnight_gapped_stocks.csv")
 
 if __name__ == "__main__":
     main()

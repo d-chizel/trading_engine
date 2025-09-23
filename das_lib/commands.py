@@ -519,10 +519,9 @@ class CmdAPI:
     #--------------------------------------------------SHORT LOCATE COMMANDS--------------------------------------------------#
     
     #Method:SLPriceInquire
-    def short_locate_price_inquire(self, connection):
-        symbol = input("\nPlease enter a symbol for a short locate inquery: ")
-        script = f"SLPRICEINQUIRE {symbol.upper()} 100 TESTSL"
-        print(f"\nSending {script}")
+    def short_locate_price_inquire(self, connection, symbol, shares_to_locate=100):
+        script = f"SLPRICEINQUIRE {symbol.upper()} {shares_to_locate} ATLAS2"
+        print(f"Sending {script}")
         try:
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
         
@@ -541,7 +540,7 @@ class CmdAPI:
     #Method:SLNewOrder
     def short_locate_new_order(self, connection):
         symbol = input("\nPlease enter a symbol for a short order: ")
-        script = f"SLNEWORDER {symbol.upper()} 100 TESTSL"
+        script = f"SLNEWORDER {symbol.upper()} 100 ATLAS2"
         print (f"\nSending {script}")
         try:
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))

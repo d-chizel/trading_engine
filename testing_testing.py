@@ -2,7 +2,6 @@ import asyncio
 from das_lib import Connection, CmdAPI, Utils
 from polygon_stonks_lib import GapAnalyzer
 from polygon_stonks_lib.utils import parse_arguments
-import pandas as pd
 
 async def main():
     
@@ -25,18 +24,7 @@ async def main():
         6. Disconnect from DAS
     '''
     
-    # Parse command line arguments
-    args = parse_arguments()
-    
-    file_path = "D:/OneDrive/Documents/stonks_testing/"
-    file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
-    if args.mac_or_pc == "mac":
-        file_path = file_path_mac
-        
-    # Load overnight gapped stocks from CSV
-    csv_file = file_path + "overnight_gapped_stocks.csv"
-    df = pd.read_csv(csv_file)
-    filtered_results = df['ticker'].tolist()
+    filtered_results = ["FLD", "SSKN", "GLTO"]  # Example list of stocks to process
 
     utils = Utils()
     cmd = CmdAPI()
@@ -56,6 +44,5 @@ async def main():
             print(f"Error: {e}")
         finally:
             connection.disconnect_from_server()
-    
 if __name__ == "__main__":
     asyncio.run(main())
