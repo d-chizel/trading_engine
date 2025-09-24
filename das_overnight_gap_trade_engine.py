@@ -7,12 +7,6 @@ import pandas as pd
 async def main():
     
     '''
-        3. Loop through each of the stocks
-            3.4. Store the information in the dictionary
-            3.5. SLPRICEINQUIRE Short Locate Price Inquire
-            3.6. SLNEWORDER Short Locate New Order
-            3.7. SLOFFEROPERATION Short Locate Offer Operation to accept the lowest price locate offer
-            3.8. NEWORDER to place a market short sale order for the number of shares
         4. #POS Get all positions
         5. Loop through each position
             5.1. If the position is a short position, place a stop loss buy to cover order at 100% above the short sale price
@@ -55,7 +49,7 @@ async def main():
                     df.at[index, 'shortable'] = short_locate_results['shortable']
 
                 print(f"\n{df}")
-                get_offer = input("Enter Y to repeat or hit Enter to quit: ")
+                get_offer = input("Type 'Y' to create short locate orders or type 'exit' to quit: ")
 
                 if get_offer.lower() == 'y':
                     stay_alive = True

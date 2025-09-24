@@ -528,7 +528,7 @@ class CmdAPI:
         lowest_price_route = ""
         for route in locate_routes:
             script = f"SLPRICEINQUIRE {symbol.upper()} {shares_to_locate} {route}"
-            print(f"\nSending {script}")
+            #print(f"Sending {script}")
             try:
                 retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
                 print(retdata)
@@ -539,7 +539,7 @@ class CmdAPI:
                     locate_price = float(retdata.split(" ")[3])  # Assuming the price is the fourth element
                     locate_shares_available = float(retdata.split(" ")[4])  # Assuming the available shares is the fifth element
                     lowest_price_route = route
-                    print(f"Route: {route}, Price: {locate_price}, Available Shares: {locate_shares_available}")
+                    #print(f"Route: {route}, Price: {locate_price}, Available Shares: {locate_shares_available}")
                 
             except socket.timeout as e:
                 print(f"Timeout error: {e}")
@@ -553,7 +553,7 @@ class CmdAPI:
             return {"locate_price": 100, "total_locate_cost": 1000, "route": "None", "shortable": False}
         
         total_locate_cost = locate_price * shares_to_locate
-        print(f"Lowest Price Route: {lowest_price_route}, Price: {locate_price}, Available Shares: {locate_shares_available}, Total Cost: {total_locate_cost}\n")
+        print(f"Lowest Price Route: {lowest_price_route}, Price: {locate_price}, Available Shares: {locate_shares_available}, Total Cost: {total_locate_cost}")
         return ({"locate_price": locate_price, "total_locate_cost": total_locate_cost, "route": lowest_price_route, "shortable": True})
     
     #Method:SLNewOrder
