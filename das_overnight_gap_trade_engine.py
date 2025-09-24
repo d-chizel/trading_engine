@@ -17,12 +17,12 @@ async def main():
     args = parse_arguments()
     
     file_path = "D:/OneDrive/Documents/stonks_testing/"
-    file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
     if args.mac_or_pc == "mac":
+        file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
         file_path = file_path_mac
         
     # Load overnight gapped stocks from CSV
-    csv_file = file_path + "overnight_gapped_stocks.csv"
+    csv_file = f"{file_path}overnight_gapped_stocks.csv"
     df = pd.read_csv(csv_file)
     filtered_results = df['ticker'].tolist()
 
@@ -50,9 +50,8 @@ async def main():
 
                 if get_offer.lower() == 'yes':
                     cmd.short_locate_new_order_for_all_gapped_stocks(connection, df)
-                    stay_alive = False
-                else:
-                    stay_alive = False
+                    
+                stay_alive = False
 
         except Exception as e:
             print(f"Error: {e}")

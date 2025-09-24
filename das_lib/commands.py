@@ -547,7 +547,7 @@ class CmdAPI:
                 retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
                 print(retdata)
                 if retdata.split(" ")[6] == "AlreadyShortable":
-                    print(f"Already shortable, no locate needed.")
+                    print("Already shortable, no locate needed.")
                     return {"locate_price": 0, "total_locate_cost": 0, "route": "ALL", "shortable": True}
                 elif float(retdata.split(" ")[3]) < locate_price and float(retdata.split(" ")[4]) >= shares_to_locate:
                     locate_price = float(retdata.split(" ")[3])  # Assuming the price is the fourth element
@@ -609,8 +609,8 @@ class CmdAPI:
         try:
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
             
-        except:
-                print(f"\n{ordID} is not listed in your orders.\n")
+        except Exception:
+            print(f"\n{ordID} is not listed in your orders.\n")
         finally:
             print(f"\n{retdata}")
             
