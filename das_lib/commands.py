@@ -540,9 +540,6 @@ class CmdAPI:
                     locate_shares_available = float(retdata.split(" ")[4])  # Assuming the available shares is the fifth element
                     lowest_price_route = route
                     print(f"Route: {route}, Price: {locate_price}, Available Shares: {locate_shares_available}")
-                elif float(retdata.split(" ")[4]) < shares_to_locate:
-                    print("Not shortable, insufficient shares available to locate.")
-                    return {"locate_price": 100, "total_locate_cost": 1000, "route": "None", "shortable": False}
                 
             except socket.timeout as e:
                 print(f"Timeout error: {e}")
@@ -550,6 +547,10 @@ class CmdAPI:
                 print(f"General socket error: {e}")
             except Exception as e:
                 print(f"Exception: {e}")
+
+        if locate_shares_available < shares_to_locate:
+            print("Not shortable, insufficient shares available to locate.")
+            return {"locate_price": 100, "total_locate_cost": 1000, "route": "None", "shortable": False}
         
         total_locate_cost = locate_price * shares_to_locate
         print(f"Lowest Price Route: {lowest_price_route}, Price: {locate_price}, Available Shares: {locate_shares_available}, Total Cost: {total_locate_cost}\n")
