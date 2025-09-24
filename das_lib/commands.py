@@ -518,42 +518,56 @@ class CmdAPI:
         
     #--------------------------------------------------SHORT LOCATE COMMANDS--------------------------------------------------#
     
-    #Method:SLPriceInquire
-    def short_locate_price_inquire(self, connection, symbol, shares_to_locate=100):
-        script = f"SLPRICEINQUIRE {symbol.upper()} {shares_to_locate} ATLAS2"
-        print(f"Sending {script}")
-        try:
-            retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+    #Method:SLPriceInquire   
+    def short_locate_price_inquire_lowest(self, connection, symbol, shares_to_locate):
+        locate_routes = ["ATLAS2", "ATLAS1", "ATLAS3", "ATLAS6"]
+        #script = f"SLPRICEINQUIRE {symbol.upper()} {shares_to_locate} ATLAS2"
         
-        except socket.timeout as e:
-            print(f"\nTimeout error: {e}")
-            
-        except socket.error as e:
-            print(f"\nGeneral socket error: {e}")
-            
-        except Exception as e:
-            print(f"\nException: {e}")
-            
-        finally:
-            print(f"\n{retdata}")
+        locate_price = 100  # Default locate price
+        locate_shares_available = 0 # Default available shares
+        lowest_price_route = ""
+        for route in locate_routes:
+            script = f"SLPRICEINQUIRE {symbol.upper()} {shares_to_locate} {route}"
+            print(f"\nSending {script}")
+            try:
+                retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+                print(retdata)
+                if retdata.split(" ")[6] == "AlreadyShortable":
+                    print(f"Already shortable, no locate needed.")
+                    return {"locate_price": 0, "total_locate_cost": 0, "route": "ALL", "shortable": True}
+                elif float(retdata.split(" ")[3]) < locate_price and float(retdata.split(" ")[4]) >= shares_to_locate:
+                    locate_price = float(retdata.split(" ")[3])  # Assuming the price is the fourth element
+                    locate_shares_available = float(retdata.split(" ")[4])  # Assuming the available shares is the fifth element
+                    lowest_price_route = route
+                    print(f"Route: {route}, Price: {locate_price}, Available Shares: {locate_shares_available}")
+                elif float(retdata.split(" ")[4]) < shares_to_locate:
+                    print("Not shortable, insufficient shares available to locate.")
+                    return {"locate_price": 100, "total_locate_cost": 1000, "route": "None", "shortable": False}
+                
+            except socket.timeout as e:
+                print(f"Timeout error: {e}")
+            except socket.error as e:
+                print(f"General socket error: {e}")
+            except Exception as e:
+                print(f"Exception: {e}")
+        
+        total_locate_cost = locate_price * shares_to_locate
+        print(f"Lowest Price Route: {lowest_price_route}, Price: {locate_price}, Available Shares: {locate_shares_available}, Total Cost: {total_locate_cost}\n")
+        return ({"locate_price": locate_price, "total_locate_cost": total_locate_cost, "route": lowest_price_route, "shortable": True})
     
     #Method:SLNewOrder
-    def short_locate_new_order(self, connection):
-        symbol = input("\nPlease enter a symbol for a short order: ")
-        script = f"SLNEWORDER {symbol.upper()} 100 ATLAS2"
+    def short_locate_new_order(self, connection, symbol, locate_shares, route):
+        script = f"SLNEWORDER {symbol.upper()} {locate_shares} {route}"
         print (f"\nSending {script}")
         try:
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
             
         except socket.timeout as e:
             print(f"\nTimeout error: {e}")
-            
         except socket.error as e:
             print(f"\nGeneral socket error: {e}")
-            
         except Exception as e:
             print(f"\nException: {e}")
-            
         finally:
             print(f"\n{retdata}")
         

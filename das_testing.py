@@ -7,13 +7,7 @@ import pandas as pd
 async def main():
     
     '''
-        1. Get the gapped stocks from overnight
-        2. Create a dictionary to store each stock and relevant information
-        2. Connect to DAS
         3. Loop through each of the stocks
-            3.1. Subscribe to Level 1 data
-            3.2. Parse the Level 1 data to extract the B: price
-            3.3. Divide 1000 by the B: price from the Level 1 data to get number of shares to sell
             3.4. Store the information in the dictionary
             3.5. SLPRICEINQUIRE Short Locate Price Inquire
             3.6. SLNEWORDER Short Locate New Order
@@ -40,18 +34,30 @@ async def main():
 
     utils = Utils()
     cmd = CmdAPI()
-
+    
+    #Extract one row of the df for testing
+    #fifth_element = df.iloc[4:5]
+    
     with Connection() as connection:
         try:
             connection.connect_to_server()
             stay_alive = True
-            
+
             while(stay_alive):
-                for ticker in filtered_results:
-                    print(f"Processing ticker: {ticker}")
-                    await cmd.short_locate_price_inquire(connection, ticker, 100)
-                stay_alive = False  # For demo purposes, exit after one iteration
-            
+                for index, row in df.iterrows():
+                    ticker = row['ticker']
+                    shares_to_locate = row.get('shares_to_locate', 0)
+                    print(f"\nProcessing ticker: {ticker}, locating {shares_to_locate} shares")
+                    short_locate_results = cmd.short_locate_price_inquire_lowest(connection, ticker, shares_to_locate)
+                    #df.iloc[index, 'locate_price'] = short_locate_results['locate_price']
+                    #df.iloc[index, 'total_locate_cost'] = short_locate_results['total_locate_cost']
+                    #df.iloc[index, 'route'] = short_locate_results['route']
+
+                get_offer = input("Press Enter to continue to next step or type 'exit' to quit: ")
+
+                if get_offer.lower() == 'exit':
+                    stay_alive = False  # For demo purposes, exit after one iteration
+
         except Exception as e:
             print(f"Error: {e}")
         finally:
