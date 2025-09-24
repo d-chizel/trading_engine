@@ -2,6 +2,8 @@ import socket
 import uuid
 import asyncio
 from datetime import datetime, timedelta
+import pandas as pd
+
 
 class CmdAPI:
     def __init__(self):
@@ -518,6 +520,18 @@ class CmdAPI:
         
     #--------------------------------------------------SHORT LOCATE COMMANDS--------------------------------------------------#
     
+    def inquire_short_locate_for_all_gapped_stocks(self, connection, df):
+        for index, row in df.iterrows():
+            ticker = row['ticker']
+            shares_to_locate = row.get('shares_to_locate', 0)
+            print(f"\nProcessing ticker: {ticker}, locating {shares_to_locate} shares")
+            short_locate_results = self.short_locate_price_inquire_lowest(connection, ticker, shares_to_locate)
+            df.at[index, 'locate_price'] = short_locate_results['locate_price']
+            df.at[index, 'total_locate_cost'] = short_locate_results['total_locate_cost']
+            df.at[index, 'route'] = short_locate_results['route']
+            df.at[index, 'shortable'] = short_locate_results['shortable']
+        return df
+    
     #Method:SLPriceInquire   
     def short_locate_price_inquire_lowest(self, connection, symbol, shares_to_locate):
         locate_routes = ["ATLAS2", "ATLAS1", "ATLAS3", "ATLAS6"]
@@ -555,22 +569,35 @@ class CmdAPI:
         total_locate_cost = locate_price * shares_to_locate
         print(f"Lowest Price Route: {lowest_price_route}, Price: {locate_price}, Available Shares: {locate_shares_available}, Total Cost: {total_locate_cost}")
         return ({"locate_price": locate_price, "total_locate_cost": total_locate_cost, "route": lowest_price_route, "shortable": True})
-    
+
+    #Method:Inquire Short Locate for all Gapped Stocks
+    def short_locate_new_order_for_all_gapped_stocks(self, connection, df):
+        for index, row in df.iterrows():
+            if row['shortable'] and row['total_locate_cost'] <= 8 and row['route'] != 'ALL':  # Only place order if shortable and cost is within limit
+                ticker = row['ticker']
+                shares_to_locate = row['shares_to_locate']
+                route = row['route']
+                print(f"\nPlacing locate order for ticker: {ticker}, locating {shares_to_locate} shares at route {route} with total cost {row['total_locate_cost']}")
+                proceed = input("Press Enter to proceed to the next order or type 'exit' to stop: ")
+                if proceed.lower() == 'exit':
+                    break
+                self.short_locate_new_order(connection, ticker, shares_to_locate, route)
+
     #Method:SLNewOrder
     def short_locate_new_order(self, connection, symbol, locate_shares, route):
         script = f"SLNEWORDER {symbol.upper()} {locate_shares} {route}"
-        print (f"\nSending {script}")
+        print (f"Sending {script}")
         try:
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
             
         except socket.timeout as e:
-            print(f"\nTimeout error: {e}")
+            print(f"Timeout error: {e}")
         except socket.error as e:
-            print(f"\nGeneral socket error: {e}")
+            print(f"General socket error: {e}")
         except Exception as e:
-            print(f"\nException: {e}")
+            print(f"Exception: {e}")
         finally:
-            print(f"\n{retdata}")
+            print(f"{retdata}")
         
     #Method:SLCancelOrder
     def short_locate_cancel_order(self, connection):

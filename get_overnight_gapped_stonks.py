@@ -46,7 +46,7 @@ def main():
         
         if last_quote and last_quote.bid_price > 0:
             shares_to_locate = analyzer.get_locate_shares_amount(short_size, last_quote.bid_price)
-            ticker_dict[ticker] = {"last_quote_bid": last_quote.bid_price, "shares_to_locate": shares_to_locate}
+            ticker_dict[ticker] = {"last_quote_bid": last_quote.bid_price, "shares_to_locate": shares_to_locate, "short_size": short_size}
             #print(f"{ticker} - Bid Price: {last_quote.bid_price}, Shares to Short: {shares_to_short}")
             
     df = pd.DataFrame.from_dict(ticker_dict, orient='index')

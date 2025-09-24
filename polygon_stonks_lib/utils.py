@@ -29,7 +29,7 @@ def parse_arguments():
 
     # Optional arguments        
     parser.add_argument(
-        "--verbose", 
+        "--verbose",
         action="store_true",
         help="Enable verbose output"
     )
@@ -100,6 +100,12 @@ def parse_arguments():
         type=float, 
         default=1000,
         help="Amount to short. Default: 1000"
+    )
+    
+    parser.add_argument(
+        "--autorun",
+        action="store_true",
+        help="Enable automatic trading. Default: no"
     )
     
     return parser.parse_args()

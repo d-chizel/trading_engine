@@ -38,21 +38,19 @@ async def main():
             stay_alive = True
 
             while(stay_alive):
-                for index, row in df.iterrows():
-                    ticker = row['ticker']
-                    shares_to_locate = row.get('shares_to_locate', 0)
-                    print(f"\nProcessing ticker: {ticker}, locating {shares_to_locate} shares")
-                    short_locate_results = cmd.short_locate_price_inquire_lowest(connection, ticker, shares_to_locate)
-                    df.at[index, 'locate_price'] = short_locate_results['locate_price']
-                    df.at[index, 'total_locate_cost'] = short_locate_results['total_locate_cost']
-                    df.at[index, 'route'] = short_locate_results['route']
-                    df.at[index, 'shortable'] = short_locate_results['shortable']
+                
+                df = cmd.inquire_short_locate_for_all_gapped_stocks(connection, df)
+                df = utils.get_shares_to_short(df)
 
                 print(f"\n{df}")
-                get_offer = input("Type 'Y' to create short locate orders or type 'exit' to quit: ")
+                if args.autorun == True:
+                    get_offer = "yes"
+                else:
+                    get_offer = input("Type 'Yes' to create short locate orders or Enter to quit: ")
 
-                if get_offer.lower() == 'y':
-                    stay_alive = True
+                if get_offer.lower() == 'yes':
+                    cmd.short_locate_new_order_for_all_gapped_stocks(connection, df)
+                    stay_alive = False
                 else:
                     stay_alive = False
 
