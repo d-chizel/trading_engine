@@ -37,12 +37,15 @@ def main():
     print(f"Filtered stocks by market cap: {filtered_results[:]}")  # Show all
     print(f"Filtered stocks that gap up more than 20%: {len(filtered_results)}")
     
+    portfolio_value = 30000
+    short_size = portfolio_value * 0.5 / len(filtered_results)
+    print(f"Trade value per stock: {short_size}")
     ticker_dict = {}
     for ticker in filtered_results:
         last_quote = analyzer.fetch_last_quote(ticker)
         
         if last_quote and last_quote.bid_price > 0:
-            shares_to_locate = analyzer.get_locate_shares_amount(args.short_size, last_quote.bid_price)
+            shares_to_locate = analyzer.get_locate_shares_amount(short_size, last_quote.bid_price)
             ticker_dict[ticker] = {"last_quote_bid": last_quote.bid_price, "shares_to_locate": shares_to_locate}
             #print(f"{ticker} - Bid Price: {last_quote.bid_price}, Shares to Short: {shares_to_short}")
             
