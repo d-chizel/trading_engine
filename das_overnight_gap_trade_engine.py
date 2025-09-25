@@ -20,7 +20,7 @@ async def main():
     if args.mac_or_pc == "mac":
         file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
         file_path = file_path_mac
-        
+
     # Load overnight gapped stocks from CSV
     csv_file = f"{file_path}overnight_gapped_stocks.csv"
     df = pd.read_csv(csv_file)
@@ -28,21 +28,20 @@ async def main():
 
     utils = Utils()
     cmd = CmdAPI()
-    
+
     #Extract one row of the df for testing
     #fifth_element = df.iloc[4:5]
-    
+
     with Connection() as connection:
         try:
             connection.connect_to_server()
             stay_alive = True
 
             while(stay_alive):
-                
                 df = cmd.update_df_with_short_locate_orders(connection, df)
                 df = cmd.inquire_short_locate_for_all_gapped_stocks(connection, df)
                 df = utils.get_shares_to_short(df)
-                
+
                 print(args.autorun)
 
                 print(f"\n{df}")
@@ -62,14 +61,12 @@ async def main():
                 if sell_short.lower() == 'yes':
                     cmd.short_sell_market_new_order_for_all_gapped_stocks(connection, df, autorun = args.autorun)
 
-
-                    
                 stay_alive = False
 
         except Exception as e:
             print(f"Error: {e}")
         finally:
             connection.disconnect_from_server()
-    
+
 if __name__ == "__main__":
     asyncio.run(main())
