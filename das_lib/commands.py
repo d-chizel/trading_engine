@@ -183,9 +183,44 @@ class CmdAPI:
                 print(f"\nRecieved Data:\n{retdata}\n")
             else:
                 print("")
-        
+                
+    #--------------------------------------------------TRADING COMMANDS--------------------------------------------------#
+    #Method:NewOrder for short sell
+    def short_sell_market_new_order(self, connection, symbol, shares_to_short, route="SMAT", tif="DAY"):
+        unID = int(self.uniq)
+        script = f"NEWORDER {unID} SS {symbol.upper()} {route} {shares_to_short} MKT {tif.upper()}"
+        print (f"Sending {script}")
+        try:
+            retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+            
+        except socket.timeout as e:
+            print(f"Timeout error: {e}")
+        except socket.error as e:
+            print(f"General socket error: {e}")
+        except Exception as e:
+            print(f"Exception: {e}")
+        finally:
+            print(f"{retdata}")
+
+    #Method:Short Sell New Order for all Gapped Stocks
+    def short_sell_market_new_order_for_all_gapped_stocks(self, connection, df, autorun = False):
+        for index, row in df.iterrows():
+            if row['locate_order_status'] == 'Accepted!' or row['route'] == 'ALL':  # Only place short sell order if locate is available or already shortable
+                symbol = row['ticker']
+                shares_to_short = row['shares_to_short']
+                route = "SMAT"
+                print(f"\nPlacing market short sell order for ticker: {symbol}, for {shares_to_short} shares at route: {route}")
+                if not autorun:
+                    proceed = input("Type 'Yes' to proceed to place short sell market order or Enter to skip: ")
+                    if proceed.lower() == 'yes':
+                        self.short_sell_market_new_order(connection, symbol, shares_to_short, route, "DAY")                
+                else:
+                    self.short_sell_market_new_order(connection, symbol, shares_to_short, route, "DAY")
+
     #Method:Submit Order
     def submit_order(self, connection):
+        # The code is attempting to convert the variable `self.uniq` to an integer using the `int()`
+        # function and store the result in the variable `unID`.
         unID = int(self.uniq)
         inp = input("\nSubmit Limit Order\t\t\t\t(Enter: 1)\n       Market Order\t\t\t\t(Enter: 2)\n       Stop Limit Order\t\t\t\t(Enter: 3)\n       Stop Market Order\t\t\t(Enter: 4)\n       Stop Range Order\t\t\t\t(Enter: 5)\n       Stop Range Market Order\t\t\t(Enter: 6)\n       Stop Trailing Order\t\t\t(Enter: 7)\n       Complex Order\t\t\t\t(Enter: 8)\n\n       Input: ")
         script = ""
@@ -410,7 +445,6 @@ class CmdAPI:
 
     #Method:Cancel Order
     def cancel_order(self, connection):
-        cmd = cmdAPI()
         ans = input("\nWould you like to cancel an order?(Y/N) ")
         
         if(ans.upper() == 'YES' or ans.upper() == 'Y' or ans == "1"):
@@ -571,17 +605,19 @@ class CmdAPI:
         return ({"locate_price": locate_price, "total_locate_cost": total_locate_cost, "route": lowest_price_route, "shortable": True})
 
     #Method:Inquire Short Locate for all Gapped Stocks
-    def short_locate_new_order_for_all_gapped_stocks(self, connection, df):
+    def short_locate_new_order_for_all_gapped_stocks(self, connection, df, autorun = False):
         for index, row in df.iterrows():
-            if row['shortable'] and row['total_locate_cost'] <= 8 and row['route'] != 'ALL':  # Only place order if shortable and cost is within limit
+            if row['shortable'] and row['total_locate_cost'] <= row['short_size'] * 0.003 and row['route'] != 'ALL' and row['locate_order_status'] != 'Accepted!':  # Only place order if shortable and cost is within limit
                 ticker = row['ticker']
                 shares_to_locate = row['shares_to_locate']
                 route = row['route']
                 print(f"\nPlacing locate order for ticker: {ticker}, locating {shares_to_locate} shares at route {route} with total cost {row['total_locate_cost']}")
-                proceed = input("Press Enter to proceed to the next order or type 'exit' to stop: ")
-                if proceed.lower() == 'exit':
-                    break
-                self.short_locate_new_order(connection, ticker, shares_to_locate, route)
+                if not autorun:
+                    proceed = input("Type 'Yes' to proceed to locate the order or Enter to skip: ")
+                    if proceed.lower() == 'yes':
+                        self.short_locate_new_order(connection, ticker, shares_to_locate, route)
+                else:
+                    self.short_locate_new_order(connection, ticker, shares_to_locate, route)
 
     #Method:SLNewOrder
     def short_locate_new_order(self, connection, symbol, locate_shares, route):
@@ -616,7 +652,6 @@ class CmdAPI:
             
     #Method:SLOfferOperation
     def short_locate_offer_operation(self, connection):     #// To Accept or Reject an offer
-        cmd = cmdAPI()
         ans = input("\nAccept or Reject:(A/R) ")
         try:
             if(ans.upper() == "A" or ans.upper() == "ACCEPT" or ans == "1" or ans.upper() == "Y" or ans.upper() == "YES"):
@@ -649,19 +684,38 @@ class CmdAPI:
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
         
         except socket.timeout as e:
-            print(f"\nTimeout error: {e}")
+            print(f"Timeout error: {e}")
             
         except socket.error as e:
-            print(f"\nGeneral socket error: {e}")
+            print(f"General socket error: {e}")
             
         except Exception as e:
-            print(f"\nException: {e}")
+            print(f"Exception: {e}")
          
         finally:
             if retdata:
-                print(f"\nRecieved Data:\n{retdata}\n")
+                print(f"Recieved Data:\n{retdata}\n")
             else:
-                print("\nTimed out / No Data Recieved\n")
+                print("Timed out / No Data Recieved\n")
+            return retdata
+    
+    def get_short_locate_orders_df(self,connection):
+        locate_orders = self.get_short_locate_orders(connection)
+        locate_orders_array = locate_orders.split()
+        grouped_orders = [locate_orders_array[i:i+13] for i in range(0, len(locate_orders_array), 13)]
+        headers = grouped_orders[:1][0]  # Remove the header row from data
+        grouped_orders = grouped_orders[1:-1] # Remove the header row
+        
+        return pd.DataFrame(grouped_orders, columns=headers)
+    
+    def update_df_with_short_locate_orders(self, connection, df):
+        grouped_orders_df = self.get_short_locate_orders_df(connection)
+        for index, row in df.iterrows():
+            for index2, row2 in grouped_orders_df.iterrows():
+                if row['ticker'] == row2['symb']:
+                    df.at[index, 'locate_order_status'] = row2['notes']
+        
+        return df
             
     #Method:PositionRefresh
     def PositionRefresh(self,connection):

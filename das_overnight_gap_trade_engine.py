@@ -39,17 +39,30 @@ async def main():
 
             while(stay_alive):
                 
+                df = cmd.update_df_with_short_locate_orders(connection, df)
                 df = cmd.inquire_short_locate_for_all_gapped_stocks(connection, df)
                 df = utils.get_shares_to_short(df)
+                
+                print(args.autorun)
 
                 print(f"\n{df}")
                 if args.autorun == True:
-                    get_offer = "yes"
+                    get_locates = "yes"
                 else:
-                    get_offer = input("Type 'Yes' to create short locate orders or Enter to quit: ")
+                    get_locates = input("Type 'Yes' to create short locate orders or Enter to skip: ")
 
-                if get_offer.lower() == 'yes':
-                    cmd.short_locate_new_order_for_all_gapped_stocks(connection, df)
+                if get_locates.lower() == 'yes':
+                    cmd.short_locate_new_order_for_all_gapped_stocks(connection, df, autorun = args.autorun)
+                    
+                if args.autorun == True:
+                    sell_short = "yes"
+                else:
+                    sell_short = input("Type 'Yes' to create short sell orders or Enter to quit: ")
+
+                if sell_short.lower() == 'yes':
+                    cmd.short_sell_market_new_order_for_all_gapped_stocks(connection, df, autorun = args.autorun)
+
+
                     
                 stay_alive = False
 

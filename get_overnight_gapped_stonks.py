@@ -38,7 +38,7 @@ def main():
     print(f"Filtered stocks that gap up more than 20%: {len(filtered_results)}")
     
     portfolio_value = 30000
-    short_size = portfolio_value * 0.5 / len(filtered_results)
+    short_size = min(portfolio_value * 0.5 / len(filtered_results), portfolio_value/10)
     print(f"Trade value per stock: {short_size}")
     ticker_dict = {}
     for ticker in filtered_results:
