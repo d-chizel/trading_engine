@@ -29,6 +29,10 @@ class GapAnalyzer:
         self.last_quote = self.client.get_last_quote(ticker)
         return self.last_quote
     
+    def fetch_daily_open_close_agg(self, ticker, date):
+        self.daily_open_close_agg = self.client.get_daily_open_close_agg(ticker, date, adjusted="true")
+        return self.daily_open_close_agg
+
     def fetch_snapshot(self, market_type="stocks", include_otc='false'):
         """
         Fetch full market snapshot data from Polygon.io API.
@@ -163,9 +167,9 @@ class GapAnalyzer:
         print(gapped_stocks)
         return gapped_stocks
     
-    def get_overnight_gapped_stocks(self, gap_threshold=0.2, gap_direction="up", price_threshold=1.5):
+    def get_overnight_gapped_stocks(self, gap_threshold=0.2, gap_direction="up", price_threshold=2):
         """
-        Get stocks that have gapped based on the gap threshold where the stock price is higher than 1.5.
+        Get stocks that have gapped based on the gap threshold where the stock price is higher than 2.
         
         Args:
             gap_threshold (float): Minimum gap percentage (as decimal, e.g., 0.2 for 20%)
