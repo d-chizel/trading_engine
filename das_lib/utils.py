@@ -37,15 +37,3 @@ class Utils:
                     return None
         print("B: price not found in Level 1 data.")
         return None
-
-    @staticmethod
-    def get_shares_to_short(df):
-        """
-        Retrieves the number of shares to short for a given ticker from the DataFrame.
-        """
-        for index, row in df.iterrows():
-            last_quote_bid = row['last_quote_bid']
-            shares_to_locate = row['shares_to_locate']
-            short_size = row['short_size']
-            df.at[index, 'shares_to_short'] = min(round(short_size / last_quote_bid), shares_to_locate)
-        return df
