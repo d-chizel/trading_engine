@@ -202,11 +202,27 @@ class CmdAPI:
             print(f"Exception: {e}")
         finally:
             print(f"{retdata}")
+            
+    def short_sell_open_auction_new_order(self, connection, symbol, shares_to_short, route="SMAT", tif="DAY"):
+        unID = int(self.uniq)
+        script = f"NEWORDER {unID} SS {symbol.upper()} ALGO {shares_to_short} FixTags=ALGO|Type=AUCT|OA=Y"
+        print (f"Sending {script}")
+        try:
+            retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+            
+        except socket.timeout as e:
+            print(f"Timeout error: {e}")
+        except socket.error as e:
+            print(f"General socket error: {e}")
+        except Exception as e:
+            print(f"Exception: {e}")
+        finally:
+            print(f"{retdata}")
 
     #Method:Short Sell New Order for all Gapped Stocks
     def short_sell_market_new_order_for_all_gapped_stocks(self, connection, autorun = False):
         for index, row in self.ticker_df.iterrows():
-            if row['locate_order_status'] == 'Accepted!' or row['route'] == 'ALL':  # Only place short sell order if locate is available or already shortable
+            if row['pre_trade_check_passed']:  # Only place short sell order if locate is available or already shortable
                 symbol = row['ticker']
                 shares_to_short = row['shares_to_short']
                 route = "SMAT"
@@ -621,12 +637,12 @@ class CmdAPI:
         for index, row in self.ticker_df.iterrows():
             locate_available_check = row['locate_available']
             locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.003
-            no_existing_locate = row['locate_order_status'] != 'Acce    pted!'
+            no_existing_locate_check = row['locate_order_status'] != 'Acce    pted!'
             volume_check = row['volume'] >= 1000000
             self.ticker_df.at[index, 'pre_trade_check_passed'] = bool(
                 locate_available_check
                 and locate_cost_check
-                and no_existing_locate
+                and no_existing_locate_check
                 and volume_check
             )
 
