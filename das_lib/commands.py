@@ -259,6 +259,39 @@ class CmdAPI:
                 else:
                     self.short_sell_market_new_order(connection, symbol, shares_to_short, route, "DAY")
 
+    #Method:NewOrder for stop loss
+    def stop_loss_market_buy_new_order(self, connection, symbol, shares_to_cover, stop_price, route="SMAT", tif="DAY"):
+            unID = int(self.uniq)
+            script = f"NEWORDER {unID} B {symbol.upper()} {route} {shares_to_cover} STOPMKT {stop_price}"
+            print (f"Sending {script}")
+            try:
+                retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+                
+            except socket.timeout as e:
+                print(f"Timeout error: {e}")
+            except socket.error as e:
+                print(f"General socket error: {e}")
+            except Exception as e:
+                print(f"Exception: {e}")
+            finally:
+                print(f"{retdata}")
+                
+    #Method:Stop Loss New Order for all holdings in position
+    def stop_loss_new_order_for_all_stocks_in_position(self, connection, autorun = False):
+        for index, row in self.ticker_df.iterrows():
+            if row['in_position']:  # Only place short sell order if locate is available or already shortable
+                symbol = row['ticker']
+                shares_to_cover = row['shares_to_cover']
+                route = "SMAT"
+                stop_price = row['ave_price']
+                print(f"\nPlacing market stop loss order for ticker: {symbol}, for {shares_to_cover} shares at route: {route}")
+                if not autorun:
+                    proceed = input("Type 'Yes' to proceed to place stop loss market order or Enter to skip: ")
+                    if proceed.lower() == 'yes':
+                        self.stop_loss_market_buy_new_order(connection, symbol, shares_to_cover, stop_price, route, "DAY")                
+                else:
+                    self.stop_loss_market_buy_new_order(connection, symbol, shares_to_cover, stop_price, route, "DAY")
+
     #Method:Submit Order
     def submit_order(self, connection):
         # The code is attempting to convert the variable `self.uniq` to an integer using the `int()`
