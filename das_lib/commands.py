@@ -149,6 +149,31 @@ class CmdAPI:
                 print(f"\nRecieved Data:\n{retdata}\n")
             else:
                 print("")
+                
+    def get_positions(self, connection):
+        script = "GET POSITIONS\r\n"
+
+        try: 
+            print(f"\nSending {script}")
+            retdata = connection.send_script(bytearray(script, encoding = "ascii"))
+            retdata_array = retdata.split()
+            all_positions = [retdata_array[i:i+9] for i in range(0, len(retdata_array), 9)]
+            headers = all_positions[:1][0]  # Remove the header row from data
+            all_positions = all_positions[1:-1] # Remove the header row
+
+            all_positions_df = pd.DataFrame(all_positions, columns=headers)
+        except socket.timeout as e:
+            print(f"\nTimeout error: {e}")            
+        except socket.error as e:
+            print(f"\nGeneral socket error: {e}")            
+        except Exception as e:
+            print(f"\nException: {e}")            
+        finally:
+            if retdata:
+                print(f"Recieved Data:\n{retdata}\n")
+                return all_positions_df
+            else:
+                print("")
 
     #Method:Get Symbol Status Details
     def symbol_status_details(self, connection, detail_type=""):
