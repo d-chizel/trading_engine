@@ -255,7 +255,7 @@ class CmdAPI:
             print(f"{retdata}")
 
     #Method:Short Sell New Order for all Gapped Stocks
-    def short_sell_market_new_order_for_all_gapped_stocks(self, connection, autorun = False):
+    def short_sell_market_new_order_for_all_gapped_stocks(self, connection, autorun):
         for index, row in self.ticker_df.iterrows():
             if row['pre_trade_check_passed']:  # Only place short sell order if locate is available or already shortable
                 symbol = row['ticker']
@@ -268,6 +268,22 @@ class CmdAPI:
                         self.short_sell_market_new_order(connection, symbol, shares_to_short, route, "DAY")                
                 else:
                     self.short_sell_market_new_order(connection, symbol, shares_to_short, route, "DAY")
+
+    #Method:Short Sell Open Auction Order for all Gapped Stocks
+    def short_sell_open_auction_new_order_for_all_gapped_stocks(self, connection, autorun):
+        for index, row in self.ticker_df.iterrows():
+            if row['pre_trade_check_passed']:  # Only place short sell order if locate is available or already shortable
+                symbol = row['ticker']
+                shares_to_short = row['shares_to_short']
+                route = "SMAT"
+                print(f"\nPlacing market short sell order for ticker: {symbol}, for {shares_to_short} shares at route: {route}")
+                if not autorun:
+                    proceed = input("Type 'Yes' to proceed to place short sell market order or Enter to skip: ")
+                    if proceed.lower() == 'yes':
+                        self.short_sell_open_auction_new_order(connection, symbol, shares_to_short, route, "DAY")                
+                else:
+                    self.short_sell_open_auction_new_order(connection, symbol, shares_to_short, route, "DAY")
+
 
     #Method:NewOrder for stop loss
     def stop_loss_market_buy_new_order(self, connection, symbol, shares_to_cover, stop_price, route="SMAT", tif="DAY"):
@@ -676,7 +692,10 @@ class CmdAPI:
             try:
                 retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
                 print(retdata)
-                if retdata.split(" ")[6] == "AlreadyShortable":
+                if retdata is None or retdata == "Socket error: timed out":
+                    print(f"Failed to get data for route {route}.")
+                    #retdata = ["%SLRET", "0", f"{symbol.upper()}", "100", "0", "0", "NotShortable", "0"]
+                elif retdata.split(" ")[6] == "AlreadyShortable":
                     print("Already shortable, no locate needed.")
                     return {"locate_price": 0, "total_locate_cost": 0, "route": "ALL", "locate_available": True}
                 elif float(retdata.split(" ")[3]) < locate_price and float(retdata.split(" ")[4]) >= shares_to_locate:
@@ -698,28 +717,43 @@ class CmdAPI:
         
         total_locate_cost = locate_price * shares_to_locate
         print(f"Lowest Price Route: {lowest_price_route}, Price: {locate_price}, Available Shares: {locate_shares_available}, Total Cost: {total_locate_cost}")
-        return ({"locate_price": locate_price, "total_locate_cost": total_locate_cost, "route": lowest_price_route, "shortable": True})
+        return ({"locate_price": locate_price, "total_locate_cost": total_locate_cost, "route": lowest_price_route, "locate_available": True})
 
     #Method:Pre Trade Checks
-    def pre_trade_checks(self):
+    def pre_locate_checks(self):
         for index, row in self.ticker_df.iterrows():
             locate_available_check = row['locate_available']
             locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.003
-            no_existing_locate_check = row['locate_order_status'] != 'Acce    pted!'
-            volume_check = row['volume'] >= 1000000
-            self.ticker_df.at[index, 'pre_trade_check_passed'] = bool(
+            no_existing_locate_check = row['locate_order_status'] != 'Accepted!' and row['route'] != 'ALL'
+            volume_check = row['volume'] >= 0
+            self.ticker_df.at[index, 'pre_locate_check_passed'] = bool(
                 locate_available_check
                 and locate_cost_check
                 and no_existing_locate_check
                 and volume_check
             )
+    
+    #Method:Pre Trade Checks
+    def pre_trade_checks(self):
+        for index, row in self.ticker_df.iterrows():
+            locate_available_check = row['locate_available']
+            locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.003
+            locate_accepted_check = row['locate_order_status'] == 'Accepted!' or row['route'] == 'ALL'
+            volume_check = row['volume'] >= 0
+            self.ticker_df.at[index, 'pre_trade_check_passed'] = bool(
+                locate_available_check
+                and locate_cost_check
+                and locate_accepted_check
+                and volume_check
+            )
+            print(row['ticker'], locate_available_check, locate_cost_check, locate_accepted_check, volume_check)
 
     #Method:Inquire Short Locate for all Gapped Stocks
     def short_locate_new_order_for_all_gapped_stocks(self, connection, autorun = False):
         for index, row in self.ticker_df.iterrows():
             route = row['route']
-            # Checks if passed pre-trade checks and route is not 'ALL'
-            if row['pre_trade_check_passed'] and route != 'ALL':
+            # Checks if passed pre-locate checks and route is not 'ALL'
+            if row['pre_locate_check_passed'] and route != 'ALL':
                 ticker = row['ticker']
                 shares_to_locate = row['shares_to_locate']
                 print(f"\nPlacing locate order for ticker: {ticker}, locating {shares_to_locate} shares at route {route} with total cost {row['total_locate_cost']}")
@@ -813,9 +847,19 @@ class CmdAPI:
     def get_short_locate_orders_df(self,connection):
         locate_orders = self.get_short_locate_orders(connection)
         locate_orders_array = locate_orders.split()
-        grouped_orders = [locate_orders_array[i:i+13] for i in range(0, len(locate_orders_array), 13)]
+        grouped_orders_temp = []
+        grouped_orders = []
+        for index, value in enumerate(locate_orders_array):
+            if value == "#SLOrderEnd":
+                grouped_orders.append(grouped_orders_temp)
+                break
+            elif value == "%SLOrder" and index != 0:
+                grouped_orders.append(grouped_orders_temp)
+                grouped_orders_temp = ["%SLOrder"]
+            else:
+                grouped_orders_temp.append(value)
         headers = grouped_orders[:1][0]  # Remove the header row from data
-        grouped_orders = grouped_orders[1:-1] # Remove the header row
+        grouped_orders = grouped_orders[1:] # Remove the header row
         
         return pd.DataFrame(grouped_orders, columns=headers)
     
@@ -825,7 +869,10 @@ class CmdAPI:
             self.ticker_df.at[index, 'locate_order_status'] = 'No Locate Order'
             for index2, row2 in grouped_orders_df.iterrows():
                 if row['ticker'] == row2['symb']:
-                    self.ticker_df.at[index, 'locate_order_status'] = row2['notes']
+                    if row2['notes'] is None or row2['notes'] == '':
+                        self.ticker_df.at[index, 'locate_order_status'] = 'No Locate Order'
+                    else:
+                        self.ticker_df.at[index, 'locate_order_status'] = row2['notes']
 
         return self.ticker_df
 
