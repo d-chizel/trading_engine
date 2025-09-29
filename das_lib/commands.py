@@ -95,13 +95,10 @@ class CmdAPI:
                             
         except socket.timeout as e:
             print(f"\nTimeout error: {e}")
-            
         except socket.error as e:
             print(f"\nGeneral socket error: {e}")
-            
         except Exception as e:
             print(f"\nException: {e}")
-            
         finally:
             checkInput.cancel()
             await checkInput
@@ -136,15 +133,11 @@ class CmdAPI:
         
         except socket.timeout as e:
             print(f"\nTimeout error: {e}")
-            
         except socket.error as e:
             print(f"\nGeneral socket error: {e}")
-            
         except Exception as e:
             print(f"\nException: {e}")
-            
         finally:
-            
             if retdata:
                 print(f"\nRecieved Data:\n{retdata}\n")
             else:
@@ -174,6 +167,23 @@ class CmdAPI:
                 return all_positions_df
             else:
                 print("")
+                
+    #Method: Update ticker_df with current positions
+    def update_df_with_positions(self, connection):
+        positions_df = self.get_positions(connection)
+        if positions_df is not None and not positions_df.empty:
+            positions_df['Symbol'] = positions_df['Symbol'].str.upper()
+            self.ticker_df['in_position'] = self.ticker_df['ticker'].isin(positions_df['Symbol'])
+            self.ticker_df = self.ticker_df.merge(positions_df[['Symbol', 'Avg Price', 'Quantity']], how='left', left_on='ticker', right_on='Symbol')
+            self.ticker_df.rename(columns={'Avg Price': 'ave_price', 'Quantity': 'shares_in_position'}, inplace=True)
+            self.ticker_df['shares_in_position'] = self.ticker_df['shares_in_position'].fillna(0).astype(int)
+            self.ticker_df['shares_to_cover'] = self.ticker_df.apply(lambda row: row['shares_in_position'] if row['in_position'] else 0, axis=1)
+            self.ticker_df.drop(columns=['Symbol'], inplace=True)
+        else:
+            self.ticker_df['in_position'] = False
+            self.ticker_df['ave_price'] = None
+            self.ticker_df['shares_in_position'] = 0
+            self.ticker_df['shares_to_cover'] = 0
 
     #Method:Get Symbol Status Details
     def symbol_status_details(self, connection, detail_type=""):
