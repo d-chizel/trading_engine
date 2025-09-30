@@ -201,6 +201,22 @@ class CmdAPI:
             print(f"Exception: {e}")
         finally:
             print(f"{retdata}")
+    
+    def short_sell_open_auction_new_order(self, connection, symbol, shares_to_short, route="SMAT", tif="DAY"):
+        unID = int(self.uniq)
+        script = f"NEWORDER {unID} SS {symbol.upper()} ALGO {shares_to_short} MKT FixTags=ALGO|Type=AUCT|OA=Y"
+        print (f"Sending {script}")
+        try:
+            retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+            
+        except socket.timeout as e:
+            print(f"Timeout error: {e}")
+        except socket.error as e:
+            print(f"General socket error: {e}")
+        except Exception as e:
+            print(f"Exception: {e}")
+        finally:
+            print(f"{retdata}")
 
     #Method:Short Sell New Order for all Gapped Stocks
     def short_sell_market_new_order_for_all_gapped_stocks(self, connection, df, autorun = False):
