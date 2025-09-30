@@ -5,7 +5,7 @@ from polygon_stonks_lib.utils import parse_arguments
 import pandas as pd
 
 async def main():
-       
+
     # Parse command line arguments
     args = parse_arguments()
     
@@ -40,6 +40,7 @@ async def main():
                 
                 cmd.get_positions(connection)
                 #grouped_orders_df = cmd.get_short_locate_orders_df(connection)
+                cmd.short_sell_open_auction_new_order(connection, 'MSFT', 1, 'SMAT', 'DAY')
                 
                 stay_alive = False
 

@@ -61,7 +61,7 @@ async def main():
                     sell_short = input("Type 'Yes' to create short sell orders or Enter to quit: ")
 
                 if sell_short.lower() == 'yes':
-                    cmd.short_sell_open_auction_new_order_for_all_gapped_stocks(connection, autorun=args.autorun)
+                    cmd.short_sell_market_new_order_for_all_gapped_stocks(connection, autorun=args.autorun)
 
                 stay_alive = False
 

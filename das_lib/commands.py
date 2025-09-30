@@ -238,12 +238,13 @@ class CmdAPI:
         finally:
             print(f"{retdata}")
             
-    def short_sell_open_auction_new_order(self, connection, symbol, shares_to_short, route="SMAT", tif="DAY"):
+    def short_sell_open_auction_new_order(self, connection, symbol, shares_to_short, price, tif="DAY"):
         unID = int(self.uniq)
-        script = f"NEWORDER {unID} SS {symbol.upper()} ALGO {shares_to_short} FixTags=ALGO|Type=AUCT|OA=Y"
+        script = f"NEWORDER {unID} SS {symbol.upper()} ALGO {shares_to_short} {price} FixTags=ALGO|Type=AUCT|OA=Y"
         print (f"Sending {script}")
         try:
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+            #retdata = ["Simulated response: Order placed successfully."]
             
         except socket.timeout as e:
             print(f"Timeout error: {e}")
@@ -275,14 +276,15 @@ class CmdAPI:
             if row['pre_trade_check_passed']:  # Only place short sell order if locate is available or already shortable
                 symbol = row['ticker']
                 shares_to_short = row['shares_to_short']
-                route = "SMAT"
+                price = row['last_quote_bid']
+                route = "ALGO"
                 print(f"\nPlacing market short sell order for ticker: {symbol}, for {shares_to_short} shares at route: {route}")
                 if not autorun:
                     proceed = input("Type 'Yes' to proceed to place short sell market order or Enter to skip: ")
                     if proceed.lower() == 'yes':
-                        self.short_sell_open_auction_new_order(connection, symbol, shares_to_short, route, "DAY")                
+                        self.short_sell_open_auction_new_order(connection, symbol, shares_to_short, price, "DAY")                
                 else:
-                    self.short_sell_open_auction_new_order(connection, symbol, shares_to_short, route, "DAY")
+                    self.short_sell_open_auction_new_order(connection, symbol, shares_to_short, price, "DAY")
 
 
     #Method:NewOrder for stop loss
