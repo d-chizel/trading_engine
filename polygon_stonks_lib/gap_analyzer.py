@@ -32,6 +32,10 @@ class GapAnalyzer:
     def fetch_daily_open_close_agg(self, ticker, date):
         self.daily_open_close_agg = self.client.get_daily_open_close_agg(ticker, date, adjusted="true")
         return self.daily_open_close_agg
+    
+    def fetch_snapshot_ticker(self, ticker):
+        self.snapshot_ticker = self.client.get_snapshot_ticker("stocks", ticker)
+        return self.snapshot_ticker
 
     def fetch_snapshot(self, market_type="stocks", include_otc='false'):
         """

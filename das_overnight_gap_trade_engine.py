@@ -27,7 +27,7 @@ async def main():
     filtered_results = df['ticker'].tolist()
 
     utils = Utils()
-    cmd = CmdAPI()
+    cmd = CmdAPI(df)
 
     #Extract one row of the df for testing
     #fifth_element = df.iloc[4:5]
@@ -38,20 +38,22 @@ async def main():
             stay_alive = True
 
             while(stay_alive):
-                df = cmd.update_df_with_short_locate_orders(connection, df)
-                df = cmd.inquire_short_locate_for_all_gapped_stocks(connection, df)
-                df = utils.get_shares_to_short(df)
+                cmd.update_df_with_short_locate_orders(connection)
+                cmd.inquire_short_locate_for_all_gapped_stocks(connection)
+                cmd.get_shares_to_short()
+                cmd.pre_locate_checks()
+                cmd.pre_trade_checks()
+                #create function to set a join auction flag
+                #create function to set a offer at mid flag
 
-                print(args.autorun)
-
-                print(f"\n{df}")
+                print(f"\n{cmd.ticker_df}")
                 if args.autorun == True:
                     get_locates = "yes"
                 else:
                     get_locates = input("Type 'Yes' to create short locate orders or Enter to skip: ")
 
                 if get_locates.lower() == 'yes':
-                    cmd.short_locate_new_order_for_all_gapped_stocks(connection, df, autorun = args.autorun)
+                    cmd.short_locate_new_order_for_all_gapped_stocks(connection, autorun=args.autorun)
                     
                 if args.autorun == True:
                     sell_short = "yes"
@@ -59,7 +61,7 @@ async def main():
                     sell_short = input("Type 'Yes' to create short sell orders or Enter to quit: ")
 
                 if sell_short.lower() == 'yes':
-                    cmd.short_sell_market_new_order_for_all_gapped_stocks(connection, df, autorun = args.autorun)
+                    cmd.short_sell_market_new_order_for_all_gapped_stocks(connection, autorun=args.autorun)
 
                 stay_alive = False
 

@@ -5,7 +5,7 @@ from polygon_stonks_lib.utils import parse_arguments
 import pandas as pd
 
 async def main():
-       
+
     # Parse command line arguments
     args = parse_arguments()
     
@@ -20,7 +20,7 @@ async def main():
     filtered_results = df['ticker'].tolist()
 
     utils = Utils()
-    cmd = CmdAPI()
+    cmd = CmdAPI(df)
     
     #Extract one row of the df for testing
     #fifth_element = df.iloc[4:5]
@@ -38,9 +38,10 @@ async def main():
                 grouped_orders = grouped_orders[1:-1] # Remove the header row
                 grouped_orders_df = pd.DataFrame(grouped_orders, columns=headers)"""
                 
-                grouped_orders_df = cmd.get_short_locate_orders_df(connection)
+                cmd.get_positions(connection)
+                #grouped_orders_df = cmd.get_short_locate_orders_df(connection)
+                cmd.short_sell_open_auction_new_order(connection, 'MSFT', 1, 'SMAT', 'DAY')
                 
-                print(grouped_orders_df)
                 stay_alive = False
 
         except Exception as e:

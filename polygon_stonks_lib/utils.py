@@ -108,6 +108,13 @@ def parse_arguments():
         help="Enable automatic trading. Default: no"
     )
     
+    parser.add_argument(
+        "--port-value", 
+        type=float, 
+        default=30000,
+        help="Market value of portfolio. Default: 30000"
+    )
+    
     return parser.parse_args()
 
 def parse_date(date_string):
