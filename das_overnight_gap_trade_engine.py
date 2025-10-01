@@ -1,4 +1,5 @@
 import asyncio
+import cmd
 from das_lib import Connection, CmdAPI, Utils
 from polygon_stonks_lib import GapAnalyzer
 from polygon_stonks_lib.utils import parse_arguments
@@ -23,8 +24,7 @@ async def main():
 
     # Load overnight gapped stocks from CSV
     csv_file = f"{file_path}overnight_gapped_stocks.csv"
-    df = pd.read_csv(csv_file)
-    filtered_results = df['ticker'].tolist()
+    df = pd.read_csv(csv_file, index_col=0)
 
     utils = Utils()
     cmd = CmdAPI(df)
@@ -42,11 +42,14 @@ async def main():
                 cmd.inquire_short_locate_for_all_gapped_stocks(connection)
                 cmd.get_shares_to_short()
                 cmd.pre_locate_checks()
+                cmd.update_df_with_positions(connection)
                 cmd.pre_trade_checks()
+                
+                print(f"\nUpdated ticker_df with positions:\n{cmd.ticker_df}")
+
                 #create function to set a join auction flag
                 #create function to set a offer at mid flag
-
-                print(f"\n{cmd.ticker_df}")
+                
                 if args.autorun == True:
                     get_locates = "yes"
                 else:
@@ -61,7 +64,7 @@ async def main():
                     sell_short = input("Type 'Yes' to create short sell orders or Enter to quit: ")
 
                 if sell_short.lower() == 'yes':
-                    cmd.short_sell_market_new_order_for_all_gapped_stocks(connection, autorun=args.autorun)
+                    cmd.short_sell_market_at_open_for_all_gapped_stocks(connection, autorun=args.autorun)
 
                 stay_alive = False
 

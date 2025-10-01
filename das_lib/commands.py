@@ -9,6 +9,7 @@ class CmdAPI:
     def __init__(self, df):
         self.uniq = uuid.uuid4()
         self.ticker_df = df
+        self.positions_df = pd.DataFrame()
 
     async def check_for_input():
         try:
@@ -63,7 +64,7 @@ class CmdAPI:
             
         except Exception as e:
             print(f"\nException: {e}")
-         
+
         finally:
             retdata = "" #Empty the buffer
             connection.send_script(bytearray(f"UNSB {symbol.upper()} {actualLvl}\r\n", encoding = "ascii")) #Unsub from symbol
@@ -105,7 +106,7 @@ class CmdAPI:
             retdata = ""                            #Empty the buffer
             connection.send_script(bytearray(f"UNSB TOPLIST\r\n", encoding = "ascii")) #// Unsubscribe from the symbol
         #End Block
-      
+
     #Method:Get Account Details
     def account_details(self, connection, detail_type=""):
         inp = input("\nFor Buying Power\t\t(Enter: 1)\n    Positions\t\t\t(Enter: 2)\n    Orders\t\t\t(Enter: 3)\n    Trades\t\t\t(Enter: 4)\n    Route Status\t\t(Enter: 5)\n    LDLU\t\t\t(Enter: 6)\n    Symbol Status\t\t(Enter: 7)\n    Account Info\t\t(Enter: 8)\n\n    Input: ")
@@ -143,18 +144,19 @@ class CmdAPI:
             else:
                 print("")
                 
-    def get_positions(self, connection):
+    def update_positions(self, connection):
         script = "GET POSITIONS\r\n"
 
         try: 
             print(f"\nSending {script}")
             retdata = connection.send_script(bytearray(script, encoding = "ascii"))
             retdata_array = retdata.split()
-            all_positions = [retdata_array[i:i+9] for i in range(0, len(retdata_array), 9)]
+            all_positions = [retdata_array[i:i+10] for i in range(0, len(retdata_array), 10)]
             headers = all_positions[:1][0]  # Remove the header row from data
             all_positions = all_positions[1:-1] # Remove the header row
 
-            all_positions_df = pd.DataFrame(all_positions, columns=headers)
+            self.positions_df = pd.DataFrame(all_positions, columns=headers)
+            self.positions_df['avgcost'] = self.positions_df['avgcost'].astype('float')
         except socket.timeout as e:
             print(f"\nTimeout error: {e}")            
         except socket.error as e:
@@ -163,27 +165,26 @@ class CmdAPI:
             print(f"\nException: {e}")            
         finally:
             if retdata:
-                print(f"Recieved Data:\n{retdata}\n")
-                return all_positions_df
+                print(f"Recieved Data:\n{self.positions_df}\n")
             else:
                 print("")
                 
     #Method: Update ticker_df with current positions
     def update_df_with_positions(self, connection):
-        positions_df = self.get_positions(connection)
-        if positions_df is not None and not positions_df.empty:
-            positions_df['Symbol'] = positions_df['Symbol'].str.upper()
-            self.ticker_df['in_position'] = self.ticker_df['ticker'].isin(positions_df['Symbol'])
-            self.ticker_df = self.ticker_df.merge(positions_df[['Symbol', 'Avg Price', 'Quantity']], how='left', left_on='ticker', right_on='Symbol')
-            self.ticker_df.rename(columns={'Avg Price': 'ave_price', 'Quantity': 'shares_in_position'}, inplace=True)
-            self.ticker_df['shares_in_position'] = self.ticker_df['shares_in_position'].fillna(0).astype(int)
-            self.ticker_df['shares_to_cover'] = self.ticker_df.apply(lambda row: row['shares_in_position'] if row['in_position'] else 0, axis=1)
-            self.ticker_df.drop(columns=['Symbol'], inplace=True)
-        else:
-            self.ticker_df['in_position'] = False
-            self.ticker_df['ave_price'] = None
-            self.ticker_df['shares_in_position'] = 0
-            self.ticker_df['shares_to_cover'] = 0
+        self.update_positions(connection)
+        self.ticker_df['in_position'] = False
+        self.ticker_df['ave_price'] = 0.0
+        #self.ticker_df['ave_price'] = self.ticker_df['ave_price'].astype('float')
+        self.ticker_df['shares_in_position'] = 0
+
+        if self.positions_df is not None and not self.positions_df.empty:
+            for idx, pos_row in self.positions_df.iterrows():
+                ticker = pos_row['symb'].upper()
+                for idx2, ticker_row in self.ticker_df.iterrows():
+                    if ticker == ticker_row['ticker']:
+                        self.ticker_df.at[idx2, 'in_position'] = True
+                        self.ticker_df.at[idx2, 'ave_price'] = (pos_row['avgcost'])
+                        self.ticker_df.at[idx2, 'shares_in_position'] = int(pos_row['qty'])
 
     #Method:Get Symbol Status Details
     def symbol_status_details(self, connection, detail_type=""):
@@ -256,19 +257,20 @@ class CmdAPI:
             print(f"{retdata}")
 
     #Method:Short Sell New Order for all Gapped Stocks
-    def short_sell_market_new_order_for_all_gapped_stocks(self, connection, autorun):
+    def short_sell_market_at_open_for_all_gapped_stocks(self, connection, autorun):
         for index, row in self.ticker_df.iterrows():
             if row['pre_trade_check_passed']:  # Only place short sell order if locate is available or already shortable
                 symbol = row['ticker']
                 shares_to_short = row['shares_to_short']
-                route = "SMAT"
+                route = "XALL"
+                tif = "DAY"
                 print(f"\nPlacing market short sell order for ticker: {symbol}, for {shares_to_short} shares at route: {route}")
                 if not autorun:
                     proceed = input("Type 'Yes' to proceed to place short sell market order or Enter to skip: ")
                     if proceed.lower() == 'yes':
-                        self.short_sell_market_new_order(connection, symbol, shares_to_short, route, "DAY")                
+                        self.short_sell_market_new_order(connection, symbol, shares_to_short, route, tif)                
                 else:
-                    self.short_sell_market_new_order(connection, symbol, shares_to_short, route, "DAY")
+                    self.short_sell_market_new_order(connection, symbol, shares_to_short, route, tif)
 
     #Method:Short Sell Open Auction Order for all Gapped Stocks
     def short_sell_open_auction_new_order_for_all_gapped_stocks(self, connection, autorun):
@@ -742,11 +744,13 @@ class CmdAPI:
             locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.003
             locate_accepted_check = row['locate_order_status'] == 'Accepted!' or row['route'] == 'ALL'
             volume_check = row['volume'] >= 0
+            already_in_position_check = row['shares_in_position'] == 0  # Ensure not already in position
             self.ticker_df.at[index, 'pre_trade_check_passed'] = bool(
                 locate_available_check
                 and locate_cost_check
                 and locate_accepted_check
                 and volume_check
+                and already_in_position_check
             )
             print(row['ticker'], locate_available_check, locate_cost_check, locate_accepted_check, volume_check)
 
