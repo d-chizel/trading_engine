@@ -36,6 +36,7 @@ async def main():
         try:
             connection.connect_to_server()
             stay_alive = True
+            stay_alive_2 = True
 
             while(stay_alive):
                 cmd.update_df_with_short_locate_orders(connection)
@@ -59,12 +60,18 @@ async def main():
                     cmd.short_locate_new_order_for_all_gapped_stocks(connection, autorun=args.autorun)
                     
                 if args.autorun == True:
-                    sell_short = "yes"
+                        sell_short = "yes"
                 else:
                     sell_short = input("Type 'Yes' to create short sell orders or Enter to quit: ")
-
+                    
                 if sell_short.lower() == 'yes':
-                    cmd.short_sell_market_at_open_for_all_gapped_stocks(connection, autorun=args.autorun)
+                    while(stay_alive_2):
+
+                        cmd.short_sell_market_at_open_for_all_gapped_stocks(connection, autorun=args.autorun)
+                        
+                        rerun_sell = input("Type 'Yes' to re-attempt any failed short sell orders or Enter to quit: ")
+                        if rerun_sell.lower() != 'yes':
+                            stay_alive_2 = False
 
                 stay_alive = False
 
