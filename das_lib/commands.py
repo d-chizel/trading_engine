@@ -223,12 +223,12 @@ class CmdAPI:
                 
     #--------------------------------------------------TRADING COMMANDS--------------------------------------------------#
     #Method:NewOrder for short sell
-    def short_sell_market_new_order(self, connection, symbol, shares_to_short, route="SMAT", tif="DAY"):
+    async def short_sell_market_new_order(self, connection, symbol, shares_to_short, route="SMAT", tif="DAY"):
         unID = int(self.uniq)
         script = f"NEWORDER {unID} SS {symbol.upper()} {route} {shares_to_short} MKT {tif.upper()}"
         print (f"Sending {script}")
         try:
-            retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+            retdata = await connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
             
         except socket.timeout as e:
             print(f"Timeout error: {e}")
