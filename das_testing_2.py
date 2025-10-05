@@ -16,8 +16,7 @@ async def main():
         
     # Load overnight gapped stocks from CSV
     csv_file = file_path + "overnight_gapped_stocks.csv"
-    df = pd.read_csv(csv_file)
-    filtered_results = df['ticker'].tolist()
+    df = pd.read_csv(csv_file, index_col=0)
 
     utils = Utils()
     cmd = CmdAPI(df)
@@ -38,9 +37,8 @@ async def main():
                 grouped_orders = grouped_orders[1:-1] # Remove the header row
                 grouped_orders_df = pd.DataFrame(grouped_orders, columns=headers)"""
                 
-                cmd.get_positions(connection)
+                cmd.update_df_with_positions(connection)
                 #grouped_orders_df = cmd.get_short_locate_orders_df(connection)
-                cmd.short_sell_open_auction_new_order(connection, 'MSFT', 1, 'SMAT', 'DAY')
                 
                 stay_alive = False
 

@@ -49,12 +49,19 @@ def main():
         last_quote = analyzer.fetch_last_quote(ticker)
         daily_ticker_snapshot = analyzer.fetch_snapshot_ticker(ticker)
         volume = daily_ticker_snapshot.prev_day.volume
-        
-        if last_quote and last_quote.bid_price > 0:
+        bid_price = 0
+        ask_price = 0
+
+        if last_quote:
+            if last_quote.bid_price > 0:
+                bid_price = last_quote.bid_price
+            if last_quote.ask_price > 0:
+                ask_price = last_quote.ask_price
             shares_to_locate = analyzer.get_locate_shares_amount(short_size, last_quote.bid_price)
-            ticker_dict[ticker] = {"last_quote_bid": last_quote.bid_price, "shares_to_locate": shares_to_locate, "short_size": short_size, "volume": volume}
-            #print(f"{ticker} - Bid Price: {last_quote.bid_price}, Shares to Short: {shares_to_short}")
-            
+            ticker_dict[ticker] = {"last_quote_bid": bid_price, "last_quote_ask": ask_price, "shares_to_locate": shares_to_locate, "short_size": short_size, "volume": volume}
+        else:
+            print(f"No last quote data for {ticker}, skipping...")
+                    
     df = pd.DataFrame.from_dict(ticker_dict, orient='index')
     df.index.name = 'ticker'
     df.reset_index(inplace=True)
