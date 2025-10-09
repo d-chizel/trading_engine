@@ -21,10 +21,10 @@ def parse_arguments():
     )
     
     parser.add_argument(
-        "--mac-or-pc", 
+        "--mac", 
         type=str, 
-        default="pc",
-        help="Specify if running on Mac or PC"
+        action="store_true",
+        help="Specify if running on Mac (default is PC)"
     )
 
     # Optional arguments        
