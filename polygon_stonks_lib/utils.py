@@ -22,7 +22,6 @@ def parse_arguments():
     
     parser.add_argument(
         "--mac", 
-        type=str, 
         action="store_true",
         help="Specify if running on Mac (default is PC)"
     )
