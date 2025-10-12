@@ -19,7 +19,7 @@ def main():
     
     file_path = "D:/OneDrive/Documents/stonks_testing/intraday_prices_for_pnl_tracking/"
     file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/intraday_prices_for_pnl_tracking/"
-    if args.mac_or_pc == "mac":
+    if args.mac:
         file_path = file_path_mac
     
     input_file = f"{file_path}trades_data.csv"

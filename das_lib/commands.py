@@ -727,7 +727,7 @@ class CmdAPI:
     def pre_locate_checks(self):
         for index, row in self.ticker_df.iterrows():
             locate_available_check = row['locate_available']
-            locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.003
+            locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.004
             no_existing_locate_check = row['locate_order_status'] != 'Accepted!' and row['route'] != 'ALL'
             volume_check = row['volume'] >= 0
             self.ticker_df.at[index, 'pre_locate_check_passed'] = bool(
@@ -741,8 +741,8 @@ class CmdAPI:
     def pre_trade_checks(self):
         for index, row in self.ticker_df.iterrows():
             locate_available_check = row['locate_available']
-            locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.003
-            locate_accepted_check = row['locate_order_status'] == 'Accepted!' or row['route'] == 'ALL'
+            locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.004 # 
+            locate_accepted_check = row['locate_order_status'] == 'Accepted!' or row['route'] == 'ALL' # Locates exist for shorting
             volume_check = row['volume'] >= 0
             already_in_position_check = row['shares_in_position'] == 0  # Ensure not already in position
             self.ticker_df.at[index, 'pre_trade_check_passed'] = bool(
@@ -752,7 +752,7 @@ class CmdAPI:
                 and volume_check
                 and already_in_position_check
             )
-            print(row['ticker'], locate_available_check, locate_cost_check, locate_accepted_check, volume_check)
+            #print(row['ticker'], locate_available_check, locate_cost_check, locate_accepted_check, volume_check)
 
     #Method:Inquire Short Locate for all Gapped Stocks
     def short_locate_new_order_for_all_gapped_stocks(self, connection, autorun = False):

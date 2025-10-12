@@ -18,7 +18,7 @@ async def main():
     args = parse_arguments()
     
     file_path = "D:/OneDrive/Documents/stonks_testing/"
-    if args.mac_or_pc == "mac":
+    if args.mac:
         file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
         file_path = file_path_mac
 
