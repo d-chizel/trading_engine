@@ -238,15 +238,6 @@ class CmdAPI:
             print(f"Exception: {e}")
         finally:
             print(f"{retdata}")
-<<<<<<< HEAD
-    
-    def short_sell_open_auction_new_order(self, connection, symbol, shares_to_short, route="SMAT", tif="DAY"):
-        unID = int(self.uniq)
-        script = f"NEWORDER {unID} SS {symbol.upper()} ALGO {shares_to_short} MKT FixTags=ALGO|Type=AUCT|OA=Y"
-        print (f"Sending {script}")
-        try:
-            retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
-=======
             
     def short_sell_open_auction_new_order(self, connection, symbol, shares_to_short, price, tif="DAY"):
         unID = int(self.uniq)
@@ -255,7 +246,6 @@ class CmdAPI:
         try:
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
             #retdata = ["Simulated response: Order placed successfully."]
->>>>>>> 6bcd3b194ec8f71c5d0bb6735b8bb460f432e4e9
             
         except socket.timeout as e:
             print(f"Timeout error: {e}")
