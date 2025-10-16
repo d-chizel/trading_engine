@@ -26,6 +26,7 @@ async def main():
     #fifth_element = df.iloc[4:5]
 
     with Connection() as connection:
+        tasks = []
         try:
             connection.connect_to_server()
             stay_alive = True
@@ -33,6 +34,7 @@ async def main():
 
             while(stay_alive):
                 cmd.update_df_with_short_locate_orders(connection)
+                cmd.inquire_short_locate_for_all_gapped_stocks(connection)
                 cmd.get_shares_to_short()
                 cmd.pre_locate_checks()
                 cmd.update_df_with_positions(connection)
@@ -41,11 +43,15 @@ async def main():
 
                 if rerun_order_entry.lower() == 'yes':
                     
-                    cmd.submit_order(connection)
-                    
+                    for index, row in cmd.ticker_df.iterrows():
+                        print(f"Processing ticker: {row['ticker']}")
+                        tasks.append(asyncio.create_task(cmd.get_ask_price(connection, "LV1", row['ticker'])))
+
+                    await asyncio.gather(*tasks)
+
                     rerun_order_entry = input("Type 'Yes' to create another order or Enter to quit: ")
-                else:
-                    stay_alive = False
+                    if rerun_order_entry.lower() != 'yes':
+                        stay_alive = False
 
         except Exception as e:
             print(f"Error: {e}")

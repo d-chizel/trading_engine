@@ -20,7 +20,17 @@ class CmdAPI:
                     return
         except Exception as e:
             print(f"\nException: {e}\n")
-    
+            
+    #Method:get_ask_price
+    async def get_ask_price(self, connection, level="Lv1", symbol=""):
+        quote = await self.subscribe(connection, level, symbol)
+        quote_array = quote.split(" ")
+        ask_price = float(quote_array[2])
+        bid_price = float(quote_array[4])
+        print(f"{symbol} {ask_price} {bid_price}")
+
+        return {"ask_price": ask_price, "bid_price": bid_price}
+
     #Method:Subscribe
     async def subscribe(self, connection, level="Lv1", symbol=""):
         actualLvl = ""
@@ -37,24 +47,26 @@ class CmdAPI:
 
         script = f"ReturnFullLv1 YES\nSB {symbol.upper()} {actualLvl}\r\n"
 
-        print(f"\nSending:\n{script}\nNOTE: Depending on the Market Time and Symbol, data retrieval may take some time.")
+        print(f"\nSending:\n{script}NOTE: Depending on the Market Time and Symbol, data retrieval may take some time.")
         datStream = True
         retdata = ""
         
         try:
-            while(datStream):        
+            retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+            print(retdata)
+            connection.send_script(bytearray(f"UNSB {symbol.upper()} {actualLvl}\r\n", encoding = "ascii")) #Unsub from symbol
+            """while(datStream):        
 
                 if(retdata == ""):
                     retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
-                    #if(retdata == ""):
-                    #    print("")
+
                 else:
                     retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
                     print("retdata is not empty")
             
                 datStream = False
-                print(f"retdata type: {type(retdata)}")
-                print(retdata)
+                #print(f"retdata type: {type(retdata)}")
+                print(retdata)"""
             
         except socket.timeout as e:
             print(f"\nTimeout error: {e}")
@@ -67,7 +79,7 @@ class CmdAPI:
 
         finally:
             retdata = "" #Empty the buffer
-            connection.send_script(bytearray(f"UNSB {symbol.upper()} {actualLvl}\r\n", encoding = "ascii")) #Unsub from symbol
+            #connection.send_script(bytearray(f"UNSB {symbol.upper()} {actualLvl}\r\n", encoding = "ascii")) #Unsub from symbol
         #End Block
     
     #Method:Subscribe Top List
@@ -590,8 +602,8 @@ class CmdAPI:
             print(f"\n{retdata}")
         else:
             print("Please enter yes or no.")
-        pass    
-
+        pass
+    
     #Method:UnSubscribe
     def unsubscribe(self, connection):
         symbol = input("\nEnter a symbol to unsubscribe: ")
@@ -684,7 +696,7 @@ class CmdAPI:
     
     #Method:SLPriceInquire   
     def short_locate_price_inquire_lowest(self, connection, symbol, shares_to_locate):
-        locate_routes = ["ATLAS2", "ATLAS1", "ATLAS3", "ATLAS6"]
+        locate_routes = ["ATLAS2", "ATLAS1", "ATLAS3", "ATLAS6", "ATLAS7"]
         #script = f"SLPRICEINQUIRE {symbol.upper()} {shares_to_locate} ATLAS2"
         
         locate_price = 100  # Default locate price
