@@ -25,16 +25,13 @@ class CmdAPI:
     #Method:get_bid_ask_price
     def get_bid_ask_price(self, connection, level="Lv1", symbol=""):
         quote = self.subscribe(connection, level, symbol)
+        print(quote)
         quote_array = quote.split(" ")
-        if (quote_array[0] == "%ORDER"):
-            quote_array = quote_array[16:]
-        if (quote_array[0] == "%OrderAct"):
-            quote_array = quote_array[9:]
-        if (quote_array[0] == "$LDLU"):
-            quote_array = quote_array[3:]
-        #print(quote_array)
-        ask_price = float(quote_array[2].split(":")[1])
-        bid_price = float(quote_array[4].split(":")[1])
+        for index, item in enumerate(quote_array):
+            if item.find("$Quote") != -1:
+                quote_index = index
+        ask_price = float(quote_array[quote_index + 2].split(":")[1])
+        bid_price = float(quote_array[quote_index + 4].split(":")[1])
 
         return {"ask_price": ask_price, "bid_price": bid_price}
 
@@ -311,6 +308,7 @@ class CmdAPI:
                 bid_price = prices['bid_price']
                 ask_price = prices['ask_price']
                 bid_ask_spread = (ask_price - bid_price)
+                print(f"Bid Price: {bid_price}, Ask Price: {ask_price}")
                 if bid_ask_spread / bid_price <= 0.005:
                     trade_price = ask_price
                 else:
