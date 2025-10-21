@@ -3,6 +3,7 @@ import uuid
 import asyncio
 from datetime import datetime, timedelta
 import pandas as pd
+from time import sleep
 
 
 class CmdAPI:
@@ -20,19 +21,25 @@ class CmdAPI:
                     return
         except Exception as e:
             print(f"\nException: {e}\n")
-            
-    #Method:get_ask_price
-    async def get_ask_price(self, connection, level="Lv1", symbol=""):
-        quote = await self.subscribe(connection, level, symbol)
+
+    #Method:get_bid_ask_price
+    def get_bid_ask_price(self, connection, level="Lv1", symbol=""):
+        quote = self.subscribe(connection, level, symbol)
         quote_array = quote.split(" ")
-        ask_price = float(quote_array[2])
-        bid_price = float(quote_array[4])
-        print(f"{symbol} {ask_price} {bid_price}")
+        if (quote_array[0] == "%ORDER"):
+            quote_array = quote_array[16:]
+        if (quote_array[0] == "%OrderAct"):
+            quote_array = quote_array[9:]
+        if (quote_array[0] == "$LDLU"):
+            quote_array = quote_array[3:]
+        #print(quote_array)
+        ask_price = float(quote_array[2].split(":")[1])
+        bid_price = float(quote_array[4].split(":")[1])
 
         return {"ask_price": ask_price, "bid_price": bid_price}
 
     #Method:Subscribe
-    async def subscribe(self, connection, level="Lv1", symbol=""):
+    def subscribe(self, connection, level="Lv1", symbol=""):
         actualLvl = ""
         
         if(level == "1" or level.upper() == "LV1" or level.upper() == "LEVEL1"):
@@ -46,27 +53,19 @@ class CmdAPI:
             return
 
         script = f"ReturnFullLv1 YES\nSB {symbol.upper()} {actualLvl}\r\n"
-
-        print(f"\nSending:\n{script}NOTE: Depending on the Market Time and Symbol, data retrieval may take some time.")
-        datStream = True
+        unsub_script = f"UNSB {symbol.upper()} {actualLvl}\r\n"
         retdata = ""
         
         try:
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+            print(len(retdata))
+            while len(retdata) < 60:
+                retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+                sleep(0.01)
             print(retdata)
-            connection.send_script(bytearray(f"UNSB {symbol.upper()} {actualLvl}\r\n", encoding = "ascii")) #Unsub from symbol
-            """while(datStream):        
-
-                if(retdata == ""):
-                    retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
-
-                else:
-                    retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
-                    print("retdata is not empty")
-            
-                datStream = False
-                #print(f"retdata type: {type(retdata)}")
-                print(retdata)"""
+            print("Unsubscribing...")
+            retdata2 = connection.send_script(bytearray(unsub_script, encoding = "ascii"))
+            return retdata
             
         except socket.timeout as e:
             print(f"\nTimeout error: {e}")
@@ -78,7 +77,7 @@ class CmdAPI:
             print(f"\nException: {e}")
 
         finally:
-            retdata = "" #Empty the buffer
+            return retdata
             #connection.send_script(bytearray(f"UNSB {symbol.upper()} {actualLvl}\r\n", encoding = "ascii")) #Unsub from symbol
         #End Block
     
@@ -251,6 +250,22 @@ class CmdAPI:
         finally:
             print(f"{retdata}")
             
+    def short_sell_join_offer_new_order(self, connection, symbol, shares_to_short, price, route="XALL", tif="DAY+"):
+        unID = int(self.uniq)
+        script = f"NEWORDER {unID} SS {symbol.upper()} {route} {shares_to_short} {price} {tif.upper()}"
+        print (f"Sending {script}")
+        try:
+            retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+            
+        except socket.timeout as e:
+            print(f"Timeout error: {e}")
+        except socket.error as e:
+            print(f"General socket error: {e}")
+        except Exception as e:
+            print(f"Exception: {e}")
+        finally:
+            print(f"{retdata}")
+            
     def short_sell_open_auction_new_order(self, connection, symbol, shares_to_short, price, tif="DAY"):
         unID = int(self.uniq)
         script = f"NEWORDER {unID} SS {symbol.upper()} ALGO {shares_to_short} {price} FixTags=ALGO|Type=AUCT|OA=Y"
@@ -283,6 +298,30 @@ class CmdAPI:
                         self.short_sell_market_new_order(connection, symbol, shares_to_short, route, tif)                
                 else:
                     self.short_sell_market_new_order(connection, symbol, shares_to_short, route, tif)
+                    
+    #Method:Short Sell New Order at offer for all Gapped Stocks 
+    def short_sell_join_offer_for_all_gapped_stocks(self, connection, autorun):
+        for index, row in self.ticker_df.iterrows():
+            if row['pre_trade_check_passed']:  # Only place short sell order if locate is available or already shortable
+                symbol = row['ticker']
+                shares_to_short = row['shares_to_short']
+                route = "XALL"
+                tif = "DAY"
+                prices = self.get_bid_ask_price(connection, "LV1", row['ticker'])
+                bid_price = prices['bid_price']
+                ask_price = prices['ask_price']
+                bid_ask_spread = (ask_price - bid_price)
+                if bid_ask_spread / bid_price <= 0.005:
+                    trade_price = ask_price
+                else:
+                    trade_price = bid_price + round(bid_ask_spread * 0.75, 2)
+                print(f"\nPlacing market short sell order for ticker: {symbol}, for {shares_to_short} shares at price: {trade_price}, at route: {route}")
+                if not autorun:
+                    proceed = input("Type 'Yes' to proceed to place short sell market order or Enter to skip: ")
+                    if proceed.lower() == 'yes':
+                        self.short_sell_join_offer_new_order(connection, symbol, shares_to_short, trade_price, route, tif)                
+                else:
+                    self.short_sell_join_offer_new_order(connection, symbol, shares_to_short, trade_price, route, tif)
 
     #Method:Short Sell Open Auction Order for all Gapped Stocks
     def short_sell_open_auction_new_order_for_all_gapped_stocks(self, connection, autorun):
@@ -687,11 +726,12 @@ class CmdAPI:
             ticker = row['ticker']
             shares_to_locate = row.get('shares_to_locate', 0)
             print(f"\nProcessing ticker: {ticker}, locating {shares_to_locate} shares")
-            short_locate_results = self.short_locate_price_inquire_lowest(connection, ticker, shares_to_locate)
-            self.ticker_df.at[index, 'locate_price'] = short_locate_results['locate_price']
-            self.ticker_df.at[index, 'total_locate_cost'] = short_locate_results['total_locate_cost']
-            self.ticker_df.at[index, 'route'] = short_locate_results['route']
-            self.ticker_df.at[index, 'locate_available'] = short_locate_results['locate_available']
+            if row['locate_order_status'] == 'No Locate Order':
+                short_locate_results = self.short_locate_price_inquire_lowest(connection, ticker, shares_to_locate)    
+                self.ticker_df.at[index, 'locate_price'] = short_locate_results['locate_price']
+                self.ticker_df.at[index, 'total_locate_cost'] = short_locate_results['total_locate_cost']
+                self.ticker_df.at[index, 'route'] = short_locate_results['route']
+                self.ticker_df.at[index, 'locate_available'] = short_locate_results['locate_available']
         return self.ticker_df
     
     #Method:SLPriceInquire   
@@ -755,6 +795,8 @@ class CmdAPI:
             locate_available_check = row['locate_available']
             locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.004 # 
             locate_accepted_check = row['locate_order_status'] == 'Accepted!' or row['route'] == 'ALL' # Locates exist for shorting
+            if locate_accepted_check:
+                locate_cost_check = True  # Bypass cost check if locate is already accepted
             volume_check = row['volume'] >= 0
             already_in_position_check = row['shares_in_position'] == 0  # Ensure not already in position
             self.ticker_df.at[index, 'pre_trade_check_passed'] = bool(

@@ -44,10 +44,12 @@ async def main():
                 if rerun_order_entry.lower() == 'yes':
                     
                     for index, row in cmd.ticker_df.iterrows():
-                        print(f"Processing ticker: {row['ticker']}")
-                        tasks.append(asyncio.create_task(cmd.get_ask_price(connection, "LV1", row['ticker'])))
-
-                    await asyncio.gather(*tasks)
+                        print(f"\nProcessing ticker: {row['ticker']}")
+                        prices = cmd.get_bid_ask_price(connection, "LV1", row['ticker'])
+                        bid_price = prices['bid_price']
+                        ask_price = prices['ask_price']
+                        bid_ask_spread = (ask_price - bid_price)/bid_price
+                        print(f"Bid Price: {bid_price}, Ask Price: {ask_price}")
 
                     rerun_order_entry = input("Type 'Yes' to create another order or Enter to quit: ")
                     if rerun_order_entry.lower() != 'yes':
