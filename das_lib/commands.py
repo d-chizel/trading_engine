@@ -726,8 +726,8 @@ class CmdAPI:
             print(f"\nProcessing ticker: {ticker}, locating {shares_to_locate} shares")
             if row['locate_order_status'] == 'No Locate Order':
                 short_locate_results = self.short_locate_price_inquire_lowest(connection, ticker, shares_to_locate)    
-                self.ticker_df.at[index, 'locate_price'] = short_locate_results['locate_price']
                 self.ticker_df.at[index, 'total_locate_cost'] = short_locate_results['total_locate_cost']
+                self.ticker_df.at[index, 'locate_price'] = short_locate_results['locate_price']
                 self.ticker_df.at[index, 'route'] = short_locate_results['route']
                 self.ticker_df.at[index, 'locate_available'] = short_locate_results['locate_available']
         return self.ticker_df
@@ -786,6 +786,7 @@ class CmdAPI:
                 and no_existing_locate_check
                 and volume_check
             )
+            print(row['ticker'], locate_available_check, locate_cost_check, no_existing_locate_check, volume_check)
     
     #Method:Pre Trade Checks
     def pre_trade_checks(self):
