@@ -41,6 +41,7 @@ async def main():
 
             while(stay_alive):
                 cmd.update_df_with_short_locate_orders(connection)
+
                 if first_run:
                     cmd.inquire_short_locate_for_all_gapped_stocks(connection)
                     first_run = False

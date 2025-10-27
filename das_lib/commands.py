@@ -919,7 +919,11 @@ class CmdAPI:
                 grouped_orders_temp.append(value)
         headers = grouped_orders[:1][0]  # Remove the header row from data
         grouped_orders = grouped_orders[1:] # Remove the header row
-        
+        for index, value in enumerate(grouped_orders):
+            if len(value) > len(headers):
+                grouped_orders[index][len(headers)-1] = ' '.join(value[len(headers)-1:])
+                grouped_orders[index] = value[:len(headers)-1]
+                
         return pd.DataFrame(grouped_orders, columns=headers)
     
     def update_df_with_short_locate_orders(self, connection):
