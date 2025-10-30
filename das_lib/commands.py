@@ -55,10 +55,11 @@ class CmdAPI:
         
         try:
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+            sleep(10)
             print(len(retdata))
             while len(retdata) < 60:
                 retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
-                sleep(0.01)
+                sleep(0.5)
             print(retdata)
             print("Unsubscribing...")
             retdata2 = connection.send_script(bytearray(unsub_script, encoding = "ascii"))
@@ -192,7 +193,10 @@ class CmdAPI:
                 for idx2, ticker_row in self.ticker_df.iterrows():
                     if ticker == ticker_row['ticker']:
                         ticker_in_position_not_in_ticker_df = False
-                        self.ticker_df.at[idx2, 'in_position'] = True
+                        if int(pos_row['qty']) > 0:
+                            self.ticker_df.at[idx2, 'in_position'] = True
+                        else:
+                            self.ticker_df.at[idx2, 'in_position'] = False
                         self.ticker_df.at[idx2, 'ave_price'] = (pos_row['avgcost'])
                         self.ticker_df.at[idx2, 'shares_in_position'] = int(pos_row['qty'])
                 if ticker_in_position_not_in_ticker_df:
@@ -332,7 +336,7 @@ class CmdAPI:
                 route = "XALL"
                 tif = "DAY"
                 print(f"Getting bid/ask prices for {symbol}, shares to short: {shares_to_short}")
-                prices = self.get_bid_ask_price(connection, "LV1", symbol)
+                prices = self.get_bid_ask_price(connection, "Lv1", symbol)
                 bid_price = prices['bid_price']
                 ask_price = prices['ask_price']
                 bid_ask_spread = (ask_price - bid_price)
@@ -828,6 +832,7 @@ class CmdAPI:
             locate_accepted_check = row['locate_order_status'] == 'Accepted!' or row['route'] == 'ALL' # Locates exist for shorting
             if locate_accepted_check:
                 locate_cost_check = True  # Bypass cost check if locate is already accepted
+                locate_available_check = True  # Bypass availability check if locate is already accepted
             volume_check = row['volume'] >= 0
             already_in_position_check = row['shares_in_position'] == 0  # Ensure not already in position
             self.ticker_df.at[index, 'pre_trade_check_passed'] = bool(

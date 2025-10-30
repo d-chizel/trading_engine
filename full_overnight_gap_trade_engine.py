@@ -104,9 +104,6 @@ async def main():
                 cmd.pre_trade_checks()
                 
                 print(f"\nUpdated ticker_df with positions:\n{cmd.ticker_df}")
-
-                #create function to set a join auction flag
-                #create function to set a offer at mid flag
                 
                 if args.autorun == True:
                     get_locates = "yes"
@@ -115,7 +112,9 @@ async def main():
 
                 if get_locates.lower() == 'yes':
                     cmd.short_locate_new_order_for_all_gapped_stocks(connection, autorun=args.autorun)
-                    print(f"\nUpdated ticker_df with positions:\n{cmd.ticker_df}")
+                    
+                cmd.pre_trade_checks()
+                print(f"\nUpdated ticker_df with positions:\n{cmd.ticker_df}\n")
                     
                 if args.autorun == True:
                         sell_short = "yes"
