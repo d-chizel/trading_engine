@@ -115,6 +115,7 @@ async def main():
 
                 if get_locates.lower() == 'yes':
                     cmd.short_locate_new_order_for_all_gapped_stocks(connection, autorun=args.autorun)
+                    print(f"\nUpdated ticker_df with positions:\n{cmd.ticker_df}")
                     
                 if args.autorun == True:
                         sell_short = "yes"

@@ -187,12 +187,39 @@ class CmdAPI:
 
         if self.positions_df is not None and not self.positions_df.empty:
             for idx, pos_row in self.positions_df.iterrows():
+                ticker_in_position_not_in_ticker_df = True
                 ticker = pos_row['symb'].upper()
                 for idx2, ticker_row in self.ticker_df.iterrows():
                     if ticker == ticker_row['ticker']:
+                        ticker_in_position_not_in_ticker_df = False
                         self.ticker_df.at[idx2, 'in_position'] = True
                         self.ticker_df.at[idx2, 'ave_price'] = (pos_row['avgcost'])
                         self.ticker_df.at[idx2, 'shares_in_position'] = int(pos_row['qty'])
+                if ticker_in_position_not_in_ticker_df:
+                    # Add a new row for a ticker that exists in positions_df but not in ticker_df
+                    new_row = {
+                        'ticker': ticker,
+                        'in_position': True,
+                        'ave_price': float(pos_row.get('avgcost', 0.0)),
+                        'shares_in_position': int(pos_row.get('qty', 0)),
+                        # sensible defaults for commonly referenced columns elsewhere in the class
+                        'last_quote_bid': 0.0,
+                        'last_quote_ask': 0.0,
+                        'shares_to_locate': 0,
+                        'short_size': 0.0,
+                        'volume': 0,
+                        'locate_order_status': 'Accepted!',
+                        'total_locate_cost': '',
+                        'locate_price': '',
+                        'route': '',
+                        'locate_available': False,
+                        'shares_to_short': int(pos_row.get('qty', 0)),
+                        'pre_locate_check_passed': False,
+                        'pre_trade_check_passed': False
+                    }
+
+                    # Append the new row to the ticker_df
+                    self.ticker_df = pd.concat([self.ticker_df, pd.DataFrame([new_row])], ignore_index=True)
 
     #Method:Get Symbol Status Details
     def symbol_status_details(self, connection, detail_type=""):
@@ -304,7 +331,8 @@ class CmdAPI:
                 shares_to_short = row['shares_to_short']
                 route = "XALL"
                 tif = "DAY"
-                prices = self.get_bid_ask_price(connection, "LV1", row['ticker'])
+                print(f"Getting bid/ask prices for {symbol}, shares to short: {shares_to_short}")
+                prices = self.get_bid_ask_price(connection, "LV1", symbol)
                 bid_price = prices['bid_price']
                 ask_price = prices['ask_price']
                 bid_ask_spread = (ask_price - bid_price)
@@ -775,6 +803,8 @@ class CmdAPI:
 
     #Method:Pre Trade Checks
     def pre_locate_checks(self):
+        print("Performing Pre-Locate Checks:")
+        print("ticker, locate_available_check, locate_cost_check, no_existing_locate_check, volume_check")
         for index, row in self.ticker_df.iterrows():
             locate_available_check = row['locate_available']
             locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.004
@@ -790,9 +820,11 @@ class CmdAPI:
     
     #Method:Pre Trade Checks
     def pre_trade_checks(self):
+        print("Performing Pre-Trade Checks:")
+        print("ticker, locate_available_check, locate_cost_check, locate_accepted_check, volume_check, already_in_position_check")
         for index, row in self.ticker_df.iterrows():
             locate_available_check = row['locate_available']
-            locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.004 # 
+            locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.004 # Total locate cost less than 40bps
             locate_accepted_check = row['locate_order_status'] == 'Accepted!' or row['route'] == 'ALL' # Locates exist for shorting
             if locate_accepted_check:
                 locate_cost_check = True  # Bypass cost check if locate is already accepted
@@ -805,7 +837,7 @@ class CmdAPI:
                 and volume_check
                 and already_in_position_check
             )
-            #print(row['ticker'], locate_available_check, locate_cost_check, locate_accepted_check, volume_check)
+            print(row['ticker'], locate_available_check, locate_cost_check, locate_accepted_check, volume_check)
 
     #Method:Inquire Short Locate for all Gapped Stocks
     def short_locate_new_order_for_all_gapped_stocks(self, connection, autorun = False):
