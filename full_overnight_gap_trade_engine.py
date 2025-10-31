@@ -44,7 +44,7 @@ async def main():
     print(f"Filtered stocks that gap up more than 20%: {len(filtered_results)}")
     
     portfolio_value = args.port_value
-    short_size = min(portfolio_value * (3/3) / len(filtered_results), portfolio_value/10)
+    short_size = min(portfolio_value * (3/3) / len(filtered_results), portfolio_value/7.5)
     today = pd.Timestamp.now().strftime("%Y-%m-%d")
     #yesterday = (pd.Timestamp.now() - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
     #print(f"Yesterday's date: {yesterday}")
@@ -112,6 +112,8 @@ async def main():
 
                 if get_locates.lower() == 'yes':
                     cmd.short_locate_new_order_for_all_gapped_stocks(connection, autorun=args.autorun)
+                else:
+                    print("Skipping short locate order creation.\n")
                     
                 cmd.pre_trade_checks()
                 print(f"\nUpdated ticker_df with positions:\n{cmd.ticker_df}\n")

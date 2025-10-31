@@ -200,10 +200,14 @@ class CmdAPI:
                         self.ticker_df.at[idx2, 'ave_price'] = (pos_row['avgcost'])
                         self.ticker_df.at[idx2, 'shares_in_position'] = int(pos_row['qty'])
                 if ticker_in_position_not_in_ticker_df:
+                    if int(pos_row['qty']) > 0:
+                        ticker_in_position = True
+                    else:
+                        ticker_in_position = False
                     # Add a new row for a ticker that exists in positions_df but not in ticker_df
                     new_row = {
                         'ticker': ticker,
-                        'in_position': True,
+                        'in_position': ticker_in_position,
                         'ave_price': float(pos_row.get('avgcost', 0.0)),
                         'shares_in_position': int(pos_row.get('qty', 0)),
                         # sensible defaults for commonly referenced columns elsewhere in the class
@@ -213,9 +217,9 @@ class CmdAPI:
                         'short_size': 0.0,
                         'volume': 0,
                         'locate_order_status': 'Accepted!',
-                        'total_locate_cost': '',
-                        'locate_price': '',
-                        'route': '',
+                        'total_locate_cost': 0.0,
+                        'locate_price': 0.0,
+                        'route': 'None',
                         'locate_available': False,
                         'shares_to_short': int(pos_row.get('qty', 0)),
                         'pre_locate_check_passed': False,
@@ -256,7 +260,7 @@ class CmdAPI:
         finally:
             
             if retdata:
-                print(f"\nRecieved Data:\n{retdata}\n")
+                print(f"Recieved Data:\n{retdata}\n")
             else:
                 print("")
                 
@@ -842,7 +846,7 @@ class CmdAPI:
                 and volume_check
                 and already_in_position_check
             )
-            print(row['ticker'], locate_available_check, locate_cost_check, locate_accepted_check, volume_check)
+            print(row['ticker'], locate_available_check, locate_cost_check, locate_accepted_check, volume_check, already_in_position_check)
 
     #Method:Inquire Short Locate for all Gapped Stocks
     def short_locate_new_order_for_all_gapped_stocks(self, connection, autorun = False):
