@@ -30,8 +30,8 @@ class CmdAPI:
         for index, item in enumerate(quote_array):
             if item.find("$Quote") != -1:
                 quote_index = index
-        ask_price = float(quote_array[quote_index + 2].split(":")[1])
-        bid_price = float(quote_array[quote_index + 4].split(":")[1])
+                ask_price = float(quote_array[quote_index + 2].split(":")[1])
+                bid_price = float(quote_array[quote_index + 4].split(":")[1])
 
         return {"ask_price": ask_price, "bid_price": bid_price}
 
@@ -54,11 +54,13 @@ class CmdAPI:
         retdata = ""
         
         try:
+            found_a_quote = False
             retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
-            sleep(10)
-            print(len(retdata))
-            while len(retdata) < 60:
-                retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+            while not found_a_quote:
+                quote_array = retdata.split(" ")
+                for index, item in enumerate(quote_array):
+                    if item.find("$Quote") != -1:
+                        found_a_quote = True
                 sleep(0.5)
             print(retdata)
             print("Unsubscribing...")
@@ -354,6 +356,9 @@ class CmdAPI:
                     proceed = input("Type 'Yes' to proceed to place short sell market order or Enter to skip: ")
                     if proceed.lower() == 'yes':
                         self.short_sell_join_offer_new_order(connection, symbol, shares_to_short, trade_price, route, tif)                
+                    proceed_2 = input("Type 'Yes' to proceed to next order: ")
+                    if proceed_2.lower() == 'yes':
+                        continue
                 else:
                     self.short_sell_join_offer_new_order(connection, symbol, shares_to_short, trade_price, route, tif)
 
