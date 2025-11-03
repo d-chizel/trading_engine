@@ -25,13 +25,13 @@ class CmdAPI:
     #Method:get_bid_ask_price
     def get_bid_ask_price(self, connection, level="Lv1", symbol=""):
         quote = self.subscribe(connection, level, symbol)
-        print(quote)
         quote_array = quote.split(" ")
         for index, item in enumerate(quote_array):
             if item.find("$Quote") != -1:
                 quote_index = index
                 ask_price = float(quote_array[quote_index + 2].split(":")[1])
                 bid_price = float(quote_array[quote_index + 4].split(":")[1])
+        sleep(0.5)
 
         return {"ask_price": ask_price, "bid_price": bid_price}
 
@@ -353,7 +353,7 @@ class CmdAPI:
                     trade_price = bid_price + round(bid_ask_spread * 0.75, 2)
                 print(f"\nPlacing market short sell order for ticker: {symbol}, for {shares_to_short} shares at price: {trade_price}, at route: {route}")
                 if not autorun:
-                    proceed = input("Type 'Yes' to proceed to place short sell market order or Enter to skip: ")
+                    proceed = input("Type 'Yes' to proceed to place short sell join offer order or Enter to skip: ")
                     if proceed.lower() == 'yes':
                         self.short_sell_join_offer_new_order(connection, symbol, shares_to_short, trade_price, route, tif)                
                     proceed_2 = input("Type 'Yes' to proceed to next order: ")
