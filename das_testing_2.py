@@ -11,14 +11,13 @@ async def main():
     
     file_path = "D:/OneDrive/Documents/stonks_testing/"
     file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
-    if args.mac_or_pc == "mac":
+    if args.mac:
         file_path = file_path_mac
         
     # Load overnight gapped stocks from CSV
     csv_file = file_path + "overnight_gapped_stocks.csv"
     df = pd.read_csv(csv_file, index_col=0)
 
-    utils = Utils()
     cmd = CmdAPI(df)
     
     #Extract one row of the df for testing
@@ -29,16 +28,10 @@ async def main():
             connection.connect_to_server()
             stay_alive = True
             
-            while stay_alive:
-                """locate_orders = cmd.get_short_locate_orders(connection)
-                locate_orders_array = locate_orders.split()
-                grouped_orders = [locate_orders_array[i:i+13] for i in range(0, len(locate_orders_array), 13)]
-                headers = grouped_orders[:1][0]  # Remove the header row from data
-                grouped_orders = grouped_orders[1:-1] # Remove the header row
-                grouped_orders_df = pd.DataFrame(grouped_orders, columns=headers)"""
+            while stay_alive:                
+                cmd.create_buy_new_order(connection, 'MSFT', 1, 500.00, 'XALL', 'DAY')
                 
-                cmd.update_df_with_positions(connection)
-                #grouped_orders_df = cmd.get_short_locate_orders_df(connection)
+                cmd.get_bid_ask_price(connection, "LV1", "MSFT")
                 
                 stay_alive = False
 

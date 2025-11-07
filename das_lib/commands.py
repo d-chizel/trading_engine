@@ -267,6 +267,23 @@ class CmdAPI:
                 print("")
                 
     #--------------------------------------------------TRADING COMMANDS--------------------------------------------------#
+    #Method: New Order buy for testing
+    def create_buy_new_order(self, connection, symbol, shares_to_short, price, route="XALL", tif="DAY+"):
+            unID = int(self.uniq)
+            script = f"NEWORDER {unID} B {symbol.upper()} {route} {shares_to_short} {price} {tif.upper()}"
+            print (f"Sending {script}")
+            try:
+                retdata = connection.send_script(bytearray(script + "\r\n", encoding = "ascii"))
+                
+            except socket.timeout as e:
+                print(f"Timeout error: {e}")
+            except socket.error as e:
+                print(f"General socket error: {e}")
+            except Exception as e:
+                print(f"Exception: {e}")
+            finally:
+                print(f"{retdata}")
+    
     #Method:NewOrder for short sell
     async def short_sell_market_new_order(self, connection, symbol, shares_to_short, route="SMAT", tif="DAY"):
         unID = int(self.uniq)
@@ -342,9 +359,8 @@ class CmdAPI:
                 route = "XALL"
                 tif = "DAY"
                 print(f"Getting bid/ask prices for {symbol}, shares to short: {shares_to_short}")
-                prices = self.get_bid_ask_price(connection, "Lv1", symbol)
-                bid_price = prices['bid_price']
-                ask_price = prices['ask_price']
+                bid_price = row['last_quote_bid']
+                ask_price = row['last_quote_ask']
                 bid_ask_spread = (ask_price - bid_price)
                 print(f"Bid Price: {bid_price}, Ask Price: {ask_price}")
                 if bid_ask_spread / bid_price <= 0.005:
