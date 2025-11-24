@@ -246,7 +246,7 @@ class GapAnalyzer:
         
         return pd.DataFrame(data_rows)
     
-    def analyze_gaps(self, gap_threshold=0.2, gap_direction="up", pre_market="false"):
+    def analyze_gaps(self, gap_threshold=0.2, gap_direction="up", after_open="false"):
         """
         Perform complete gap analysis and return both gapped stocks and DataFrame.
         
@@ -260,11 +260,11 @@ class GapAnalyzer:
         if not self.snapshot_data:
             self.fetch_snapshot()
         
-        if pre_market:
-            gapped_stocks = self.get_premarket_gapped_stocks(gap_threshold, gap_direction)
+        if after_open:
+            gapped_stocks = self.get_overnight_gapped_stocks(gap_threshold, gap_direction)
             #dataframe = self.create_dataframe()
         else:
-            gapped_stocks = self.get_overnight_gapped_stocks(gap_threshold, gap_direction)
+            gapped_stocks = self.get_premarket_gapped_stocks(gap_threshold, gap_direction)
 
         return {
             #'dataframe': dataframe,

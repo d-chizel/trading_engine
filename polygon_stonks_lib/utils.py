@@ -89,9 +89,9 @@ def parse_arguments():
     )
         
     parser.add_argument(
-        "--pre-market", 
+        "--after-open", 
         action="store_true",
-        help="Enable pre-market analysis"
+        help="Enable after-open market analysis"
     )
     
     parser.add_argument(

@@ -32,7 +32,7 @@ async def main():
     
     # Analyze gaps
     print("Analyzing gaps...")
-    results = analyzer.analyze_gaps(gap_threshold=0.2, gap_direction="up", pre_market=args.pre_market)
+    results = analyzer.analyze_gaps(gap_threshold=0.2, gap_direction="up", after_open=args.after_open)
     filtered_results = analyzer.filter_tickers_by_market_cap(
         results['gapped_stocks'],
         min_market_cap=args.min_market_cap,
