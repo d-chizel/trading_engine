@@ -781,6 +781,10 @@ class CmdAPI:
             ticker = row['ticker']
             shares_to_locate = row.get('shares_to_locate', 0)
             print(f"\nProcessing ticker: {ticker}, locating {shares_to_locate} shares")
+            self.ticker_df.at[index, 'locate_available'] = False
+            self.ticker_df.at[index, 'total_locate_cost'] = 0
+            self.ticker_df.at[index, 'locate_price'] = 0
+            self.ticker_df.at[index, 'route'] = 'None'
             if row['locate_order_status'] == 'No Locate Order':
                 short_locate_results = self.short_locate_price_inquire_lowest(connection, ticker, shares_to_locate)    
                 self.ticker_df.at[index, 'total_locate_cost'] = short_locate_results['total_locate_cost']
