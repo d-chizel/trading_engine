@@ -94,12 +94,10 @@ async def main():
 
             while(stay_alive):
                 cmd.update_df_with_short_locate_orders(connection)
-                print(cmd.ticker_df)
                 if first_run:
                     cmd.inquire_short_locate_for_all_gapped_stocks(connection)
                     first_run = False
                     
-                print(cmd.ticker_df)
                 cmd.get_shares_to_short()
                 cmd.pre_locate_checks()
                 cmd.update_df_with_positions(connection)
