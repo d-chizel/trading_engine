@@ -6,14 +6,7 @@ from polygon_stonks_lib.utils import parse_arguments
 import pandas as pd
 
 async def main():
-    
-    '''
-        4. #POS Get all positions
-        5. Loop through each position
-            5.1. If the position is a short position, place a stop loss buy to cover order at 100% above the short sale price
-        6. Disconnect from DAS
-    '''
-    
+       
     # Parse command line arguments
     args = parse_arguments()
     

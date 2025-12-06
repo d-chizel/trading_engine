@@ -48,9 +48,8 @@ def parse_arguments():
     
     parser.add_argument(
         "--end-date", 
-        type=str, 
-        default="2025-08-01",
-        help="End date for historical data (YYYY-MM-DD). Default: 2025-08-01"
+        type=str,
+        help="End date for historical data (YYYY-MM-DD)."
     )
     
     parser.add_argument(

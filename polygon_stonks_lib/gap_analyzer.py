@@ -9,6 +9,7 @@ from polygon import RESTClient
 from polygon.rest.models import TickerSnapshot, Agg
 from .utils import calculate_overnight_change, validate_ticker_data, find_ny_times_in_data, get_daily_ohlc
 import json
+import csv
 
 class GapAnalyzer:
     """
@@ -37,6 +38,29 @@ class GapAnalyzer:
         self.snapshot_ticker = self.client.get_snapshot_ticker("stocks", ticker)
         return self.snapshot_ticker
 
+    def fetch_all_tickers_for_date(self, date):
+        """
+        Fetch all tickers for a specific date from Polygon.io API.
+        
+        Args:
+            date (str): Date for which to fetch tickers (format: YYYY-MM-DD)
+
+        Returns:
+            The list of live tickers for a given date.
+        """
+        self.all_tickers = []
+        with open("tickers.csv", "a", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+            if csvfile.tell() == 0:
+                writer.writerow(["Date", "Ticker"])  # Write header
+            for ticker in self.client.list_tickers(market="stocks", date=date, active="true", order="asc", sort="ticker"):
+                if ticker.type == "CS" or ticker.type == "ADRC":
+                    self.all_tickers.append(ticker.ticker)
+                    writer.writerow([date, ticker.ticker])
+                    print(date, ticker.ticker)
+                    
+        return self.all_tickers
+    
     def fetch_snapshot(self, market_type="stocks", include_otc='false'):
         """
         Fetch full market snapshot data from Polygon.io API.
