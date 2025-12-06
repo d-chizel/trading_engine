@@ -4,6 +4,7 @@ Utility functions for polygon_stonks library.
 import argparse
 from datetime import datetime, date, timedelta, timezone
 import pytz
+import pandas as pd
 
 
 def parse_arguments():
@@ -417,4 +418,30 @@ def get_daily_ohlc(bars_data):
         'low': daily_low,
         'close': daily_close
     }
+    
+def bars_to_df(bars, ticker, prev_date, current_date):
+    if not bars:
+        return pd.DataFrame(columns=[
+            "ticker","timestamp","open","high","low","close","volume","vwap"
+        ])
+    rows = []
+    for bar in bars:
+        d = bar.__dict__ if hasattr(bar, "__dict__") else dict(bar)
+        rows.append({
+            "ticker": ticker,
+            "timestamp": d.get("timestamp") or d.get("t") or d.get("end_timestamp"),
+            "open": d.get("open") or d.get("o"),
+            "high": d.get("high") or d.get("h"),
+            "low": d.get("low") or d.get("l"),
+            "close": d.get("close") or d.get("c"),
+            "volume": d.get("volume") or d.get("v"),
+            "vwap": d.get("vwap") or d.get("vw"),
+            "start_date": prev_date,
+            "end_date": current_date,
+        })
+    df = pd.DataFrame(rows)
+    # Optional: convert timestamp to datetime if it’s epoch millis
+    if pd.api.types.is_numeric_dtype(df["timestamp"]):
+        df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms", utc=True)
+    return df
 

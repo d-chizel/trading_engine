@@ -4,7 +4,8 @@ Gets stocks that have gapped through time.
 import csv
 from datetime import datetime, date, timedelta
 from polygon_stonks_lib import GapAnalyzer
-from polygon_stonks_lib.utils import parse_arguments, parse_date, get_next_weekday, is_weekday, calculate_overnight_change, get_results_outputs
+from polygon_stonks_lib.utils import parse_arguments, parse_date, get_next_weekday, is_weekday, calculate_overnight_change, get_results_outputs, bars_to_df
+import pandas as pd
 
 def main():
     # Parse command line arguments
@@ -54,69 +55,61 @@ def main():
         print(f"Start date object: {start_date}")
         print(f"End date object: {end_date}")
         
+    # Load tickers for dates
+    file_path = "D:/OneDrive/Documents/stonks_testing/"
+    if args.mac:
+        file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
+        file_path = file_path_mac
+    file_name = file_path + "all_tickers.csv"
+    
+    # Load tickers from CSV and iterate through them
+    all_tickers = {}
+    try:
+        with open(file_name, newline='') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if not row:
+                    continue
+                if row[0] in all_tickers:
+                    all_tickers[row[0]].append(row[1])
+                else:
+                    all_tickers[row[0]] = [row[1]]
+    except FileNotFoundError:
+        print(f"Ticker file not found: {file_name}")
+        return
+    except Exception as e:
+        print(f"Error reading ticker file: {e}")
+        return
+        
     # Loop through all weekdays between start and end date
     prev_date = start_date
     all_results = []
     
     print(f"Starting analysis from {start_date}...")
-
-    all_tickers = analyzer.fetch_all_tickers_for_date(prev_date)
     
-    prev_date_daily_agg = analyzer.fetch_daily_aggs(prev_date)
-    if len(prev_date_daily_agg) == 0:
-        prev_date = get_next_weekday(prev_date + timedelta(days=1))
-        prev_date_daily_agg = analyzer.fetch_daily_aggs(prev_date)
-
     current_date = get_next_weekday(prev_date + timedelta(days=1))
     
     while current_date <= end_date:
         print(current_date)
         
-        all_tickers = analyzer.fetch_all_tickers_for_date(current_date)
-
-        """
-        current_date_daily_agg = analyzer.fetch_daily_aggs(current_date)
-        if len(current_date_daily_agg) == 0:
-            current_date = get_next_weekday(current_date + timedelta(days=1))
-            current_date_daily_agg = analyzer.fetch_daily_aggs(current_date)
-            continue
-
-        # Build dicts for fast lookup by ticker
-        prev_dict = {item.ticker: item for item in prev_date_daily_agg}
-        curr_dict = {item.ticker: item for item in current_date_daily_agg}
-
-        # Find common tickers
-        common_tickers = set(prev_dict.keys()) & set(curr_dict.keys())
-
-        for ticker in common_tickers:
-            prev_item = prev_dict[ticker]
-            curr_item = curr_dict[ticker]
-            dod_gap = calculate_overnight_change(curr_item.open, prev_item.close)
-            if args.gap_direction == "up" and dod_gap > args.gap_threshold:
-                all_results.append(get_results_outputs(ticker, prev_item, dod_gap))
-                print(ticker, ", ", dod_gap)
-            elif args.gap_direction == "down" and dod_gap <= -args.gap_threshold:
-                all_results.append(get_results_outputs(ticker, prev_item, dod_gap))
-
-        # Loop through each element (ticker) in prev_date_daily_agg
-        if prev_date_daily_agg:
-            for ticker_data in prev_date_daily_agg:
-                if args.verbose:
-                    print(f"  Processing ticker: {ticker_data.ticker}")
-                
-                # Here you can process each ticker's data
-                # For example, extract ticker symbol, open, close, volume, etc.
-                # ticker_symbol = ticker_data.ticker if hasattr(ticker_data, 'ticker') else 'Unknown'
-                # open_price = ticker_data.open if hasattr(ticker_data, 'open') else None
-                # close_price = ticker_data.close if hasattr(ticker_data, 'close') else None
-                
-                # Add your gap analysis logic here for each ticker
-                pass
-        """
+        current_date_tickers = all_tickers[current_date]
+        price_filtered_tickers = analyzer.filter_tickers_for_min_price(current_date_tickers, prev_date)
+        # TO DO: grab current prices and output list with prices from current_date
+        market_cap_filtered_tickers = analyzer.filter_tickers_by_market_cap(current_date_tickers)
+        # TO DO : Fix adjust market caps for date
+        price_filtered_tickers = analyzer.filter_tickers_for_min_price(market_cap_filtered_tickers, prev_date)
+        price_filtered_tickers_list = price_filtered_tickers['tickers_list']
+        price_filtered_tickers_prices = price_filtered_tickers['tickers_with_prices']
+        
+        for ticker in price_filtered_tickers_list:
+            bars = analyzer.fetch_custom_bars(ticker, None, None, prev_date, current_date)
+            prev_ticker_price = price_filtered_tickers_prices[ticker]
+            bars_df = bars_to_df(bars, ticker, prev_date, current_date)
+            
+            
                 
         # Move to next day
         prev_date = current_date
-        #prev_date_daily_agg = current_date_daily_agg
         current_date = get_next_weekday(prev_date + timedelta(days=1))
     
     print(f"Completed analysis for {len(all_results)} tickers")

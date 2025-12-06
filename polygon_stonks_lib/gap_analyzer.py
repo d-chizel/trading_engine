@@ -35,6 +35,15 @@ class GapAnalyzer:
         return self.daily_open_close_agg
     
     def fetch_snapshot_ticker(self, ticker):
+        """
+        Fetch full summary data for a ticker on the current date from Polygon.io API.
+        
+        Args:
+            ticker (str): ticker to look up
+
+        Returns:
+            The day bars, last quote, last trade, last minute bar, and previous day for ticker.
+        """
         self.snapshot_ticker = self.client.get_snapshot_ticker("stocks", ticker)
         return self.snapshot_ticker
 
@@ -156,6 +165,39 @@ class GapAnalyzer:
                     print(f"Ticker {ticker} filtered out due to type: {stock_type}")
 
         return filtered_tickers
+    
+    def filter_tickers_for_min_price(self, tickers_array, date, min_price=1.25):
+        """
+        Filter snapshot data by price, excluding prices below min_price.
+        Default min_price is set to 1.25 to adjust for a post 20% gap price of 1.5.
+        
+        Args:
+            min_price (float): Minimum price to filter by
+
+        Returns:
+            list: List of ticker symbols with price above the threshold
+        """
+        if not self.snapshot_data:
+            raise ValueError("No snapshot data available. Call fetch_snapshot() first.")
+        
+        filtered_tickers = []
+        tickers_price_dict = {}
+
+        for ticker in tickers_array:
+            ticker_bar = self.fetch_daily_open_close_agg(ticker, date)
+            if ticker_bar is None:
+                ticker_price = -1
+                print(f"Ticker {ticker} not found or no price data available.")
+            else:
+                ticker_price = ticker_bar["close"]
+                if ticker_price and ticker_price >= min_price:
+                        filtered_tickers.append(ticker)
+                        tickers_price_dict[ticker] = ticker_price
+                else:
+                    #print(f"Ticker {ticker} filtered out due to price: {ticker_price}")
+                    continue
+
+        return {'tickers_list': filtered_tickers, 'tickers_with_prices': tickers_price_dict}
 
     def get_premarket_gapped_stocks(self, gap_threshold=0.2, gap_direction="up", price_threshold=1.5):
         """
@@ -297,6 +339,27 @@ class GapAnalyzer:
             'gapped_count': len(gapped_stocks)
         }
 
+    def fetch_custom_bars(self, ticker, multiplier=1, timespan="minute", start_date=None, end_date=None):
+        """
+        Get custom bars for a given ticker and date range.
+        
+        Args:
+            ticker (str): Ticker symbol
+        """
+        bars = []
+        for bar in self.client.list_aggs(
+            ticker,
+            multiplier,
+            timespan,
+            start_date,
+            end_date,
+            adjusted="true",
+            sort="asc",
+            limit=5000,
+        ):
+            bars.append(bar)
+        return bars
+        
     def get_overnight_reference_time_prices(self, ticker, start_date, print_data_to_file=False, verbose=False):
         """
         Get close prices at specific NY times for a given ticker.
