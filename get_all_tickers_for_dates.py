@@ -10,6 +10,11 @@ def main():
     # Parse command line arguments
     args = parse_arguments()
     
+    file_path = "D:/OneDrive/Documents/stonks_testing/"
+    if args.mac:
+        file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
+        file_path = file_path_mac
+    
     # Initialize with API key
     analyzer = GapAnalyzer(args.api_key)
     
@@ -55,38 +60,20 @@ def main():
         print(f"End date object: {end_date}")
         
     # Loop through all weekdays between start and end date
-    prev_date = start_date
-    all_results = []
-    
     print(f"Starting analysis from {start_date}...")
 
-    all_tickers = analyzer.fetch_all_tickers_for_date(prev_date)
-    
-    prev_date_daily_agg = analyzer.fetch_daily_aggs(prev_date)
-    if len(prev_date_daily_agg) == 0:
-        prev_date = get_next_weekday(prev_date + timedelta(days=1))
-        prev_date_daily_agg = analyzer.fetch_daily_aggs(prev_date)
-
-    current_date = get_next_weekday(prev_date + timedelta(days=1))
+    current_date = start_date
     
     while current_date <= end_date:
         print(current_date)
         
-        all_tickers = analyzer.fetch_all_tickers_for_date(current_date)
+        # Fetch all tickers for the current date
+        analyzer.fetch_all_tickers_for_date(current_date, file_path)
                 
         # Move to next day
-        prev_date = current_date
-        #prev_date_daily_agg = current_date_daily_agg
-        current_date = get_next_weekday(prev_date + timedelta(days=1))
+        current_date = get_next_weekday(current_date + timedelta(days=1))
     
     print(f"Completed analysis")
-    
-    # Verbose output
-    #if args.verbose:
-    #    df = all_results['dataframe']
-    #    print(f"\nDataFrame shape: {df.shape}")
-    #    print("\nFirst 5 rows:")
-    #    print(df.head())
 
 if __name__ == "__main__":
     main()

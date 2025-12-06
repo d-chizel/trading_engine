@@ -38,7 +38,7 @@ class GapAnalyzer:
         self.snapshot_ticker = self.client.get_snapshot_ticker("stocks", ticker)
         return self.snapshot_ticker
 
-    def fetch_all_tickers_for_date(self, date):
+    def fetch_all_tickers_for_date(self, date, file_path):
         """
         Fetch all tickers for a specific date from Polygon.io API.
         
@@ -49,7 +49,7 @@ class GapAnalyzer:
             The list of live tickers for a given date.
         """
         self.all_tickers = []
-        with open("tickers.csv", "a", newline="") as csvfile:
+        with open(file_path + "all_tickers.csv", "a", newline="") as csvfile:
             writer = csv.writer(csvfile)
             if csvfile.tell() == 0:
                 writer.writerow(["Date", "Ticker"])  # Write header
