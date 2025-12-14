@@ -63,7 +63,7 @@ class GapAnalyzer:
             if csvfile.tell() == 0:
                 writer.writerow(["Date", "Ticker"])  # Write header
             for ticker in self.client.list_tickers(market="stocks", date=date, active="true", order="asc", sort="ticker"):
-                if ticker.type == "CS" or ticker.type == "ADRC":
+                if ticker.type == "CS" or ticker.type == "ADRC" or ticker.type == "OS":
                     self.all_tickers.append(ticker.ticker)
                     writer.writerow([date, ticker.ticker])
                     print(date, ticker.ticker)
