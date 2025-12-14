@@ -445,3 +445,18 @@ def bars_to_df(bars, ticker, prev_date, current_date):
         df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms", utc=True)
     return df
 
+def get_list_of_tickers_from_daily_aggs(daily_aggs):
+    """
+    Extract a list of tickers from daily aggs data.
+    
+    Args:
+        daily_aggs (list): List of daily aggs data items
+    
+    Returns:
+        list: List of ticker symbols
+    """
+    tickers_list = []
+    for agg in daily_aggs:
+        tickers_list.append(agg.ticker)
+        
+    return tickers_list

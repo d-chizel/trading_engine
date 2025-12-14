@@ -1,10 +1,14 @@
 """
 Gets stocks that have gapped through time.
 """
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import csv
 from datetime import datetime, date, timedelta
 from polygon_stonks_lib import GapAnalyzer
-from polygon_stonks_lib.utils import parse_arguments, parse_date, get_next_weekday, is_weekday, calculate_overnight_change, get_results_outputs, bars_to_df
+from polygon_stonks_lib.utils import get_list_of_tickers_from_daily_aggs, parse_arguments, parse_date, get_next_weekday, is_weekday, calculate_overnight_change, get_results_outputs, bars_to_df
 import pandas as pd
 
 def main():
@@ -60,71 +64,39 @@ def main():
     if args.mac:
         file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
         file_path = file_path_mac
-    file_name = file_path + "all_tickers.csv"
-    
-    # Load tickers from CSV and iterate through them
-    all_tickers = {}
-    try:
-        with open(file_name, newline='') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if not row:
-                    continue
-                if row[0] in all_tickers:
-                    all_tickers[row[0]].append(row[1])
-                else:
-                    all_tickers[row[0]] = [row[1]]
-    except FileNotFoundError:
-        print(f"Ticker file not found: {file_name}")
-        return
-    except Exception as e:
-        print(f"Error reading ticker file: {e}")
-        return
         
     # Loop through all weekdays between start and end date
     prev_date = start_date
     all_results = []
     current_market_caps = {}
-    
+        
     print(f"Starting analysis from {start_date}...")
     
+    # Get market caps for all tickers on start date
+    daily_aggs = analyzer.fetch_daily_aggs(start_date)
+    for ticker_agg in daily_aggs:
+        ticker = ticker_agg.ticker
+        ticker_details = analyzer.fetch_ticker_details(ticker)
+        market_cap = ticker_details.market_cap
+        current_market_caps[ticker] = {'market_cap': market_cap}
+        ticker_prev_agg = analyzer.fetch_previous_day_agg(ticker)
+        print(ticker_prev_agg)
+        current_market_caps[ticker]['prev_close'] = ticker_prev_agg[0].close if ticker_prev_agg and len(ticker_prev_agg) > 0 else None
+        print(f"Ticker: {ticker}, Market Cap: {market_cap}, Prev Close: {current_market_caps[ticker]['prev_close']}")
+
     current_date = get_next_weekday(prev_date + timedelta(days=1))
     
     while current_date <= end_date:
         print(current_date)
         
-        current_date_tickers = all_tickers[current_date]
-        price_filtered_tickers = analyzer.filter_tickers_for_min_price(current_date_tickers, prev_date)
-        # TO DO: grab current prices and output list with prices from current_date
-        # TO DO : Fix adjust market caps for date
-        price_filtered_tickers_list = price_filtered_tickers['tickers_list']
-        price_filtered_tickers_prices = price_filtered_tickers['tickers_with_prices']
-        
-        for ticker in price_filtered_tickers_list:
-            bars = analyzer.fetch_custom_bars(ticker, None, None, prev_date, current_date)
-            prev_ticker_price = price_filtered_tickers_prices[ticker]
-            bars_df = bars_to_df(bars, ticker, prev_date, current_date)
-            
+        daily_aggs = analyzer.fetch_daily_aggs(current_date)
+        current_date_tickeres = get_list_of_tickers_from_daily_aggs(daily_aggs)           
             
                 
         # Move to next day
         prev_date = current_date
         current_date = get_next_weekday(prev_date + timedelta(days=1))
     
-    print(f"Completed analysis for {len(all_results)} tickers")
-        
-    # Save to CSV if requested
-    if args.output_csv:
-        df = all_results['dataframe']
-        df.to_csv(args.output_csv, index=False)
-        print(f"Results saved to {args.output_csv}")
-    
-    # Verbose output
-    #if args.verbose:
-    #    df = all_results['dataframe']
-    #    print(f"\nDataFrame shape: {df.shape}")
-    #    print("\nFirst 5 rows:")
-    #    print(df.head())
 
 if __name__ == "__main__":
     main()
