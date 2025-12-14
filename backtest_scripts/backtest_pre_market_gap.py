@@ -84,6 +84,7 @@ def main():
     # Loop through all weekdays between start and end date
     prev_date = start_date
     all_results = []
+    current_market_caps = {}
     
     print(f"Starting analysis from {start_date}...")
     
@@ -95,9 +96,7 @@ def main():
         current_date_tickers = all_tickers[current_date]
         price_filtered_tickers = analyzer.filter_tickers_for_min_price(current_date_tickers, prev_date)
         # TO DO: grab current prices and output list with prices from current_date
-        market_cap_filtered_tickers = analyzer.filter_tickers_by_market_cap(current_date_tickers)
         # TO DO : Fix adjust market caps for date
-        price_filtered_tickers = analyzer.filter_tickers_for_min_price(market_cap_filtered_tickers, prev_date)
         price_filtered_tickers_list = price_filtered_tickers['tickers_list']
         price_filtered_tickers_prices = price_filtered_tickers['tickers_with_prices']
         
