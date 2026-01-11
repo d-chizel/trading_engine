@@ -1,10 +1,6 @@
 """
 Gets stocks that have gapped through time.
 """
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import csv
 from datetime import datetime, date, timedelta
 from polygon_stonks_lib import GapAnalyzer
@@ -73,6 +69,7 @@ def main():
     print(f"Starting analysis from {start_date}...")
     
     # Get market caps for all tickers on start date
+    # TO DO: Should we be getting the tickers from a file so that we can have an in and out sample?
     daily_aggs = analyzer.fetch_daily_aggs(start_date)
     for ticker_agg in daily_aggs:
         ticker = ticker_agg.ticker

@@ -1,6 +1,10 @@
 """
 Gets stocks that have gapped through time.
 """
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import csv
 from datetime import datetime, date, timedelta
 from polygon_stonks_lib import GapAnalyzer

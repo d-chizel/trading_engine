@@ -276,7 +276,7 @@ class GapAnalyzer:
                     overnight_change = calculate_overnight_change(
                         item.day.open, item.prev_day.close
                     )
-                    
+                                        
                     # Check gap direction
                     if gap_direction == "down" and overnight_change < -gap_threshold and item.day.open >= price_threshold:
                         gapped_stocks.append(item.ticker)
