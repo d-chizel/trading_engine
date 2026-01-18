@@ -1,6 +1,9 @@
+import sys
 import boto3
 from botocore.config import Config
 from datetime import date, timedelta
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    
 
 # Set start and end dates
 start_date = "2024-01-01"
