@@ -1,16 +1,17 @@
 import sys
 import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import boto3
 from botocore.config import Config
 from datetime import date, timedelta
 from polygon_stonks_lib.utils import parse_arguments
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
 args = parse_arguments()
 
 # Set start and end dates
-start_date = "2026-01-16"
-end_date = "2026-01-16"
+start_date = "2022-01-01"
+end_date = "2023-12-31"
 start_date = date.fromisoformat(start_date)
 end_date = date.fromisoformat(end_date)
 

@@ -1,6 +1,11 @@
 """
-Gets stocks that have gapped through time.
+The Massive API does not provide historical market caps, this script estimates the past market cap by
+scaling the current market cap to the historical price.
 """
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import csv
 from datetime import datetime, date, timedelta
 from polygon_stonks_lib import GapAnalyzer
@@ -13,12 +18,7 @@ def main():
     
     # Initialize with API key
     analyzer = GapAnalyzer(args.api_key)
-    
-    if args.verbose:
-        print(f"Using gap threshold: {args.gap_threshold * 100}%")
-        print(f"Gap direction: {args.gap_direction}")
-        print(f"Market cap range: ${args.min_market_cap:,.0f} - ${args.max_market_cap:,.0f}")
-        
+            
     # Parse dates from command line arguments
     try:
         start_date = parse_date(args.start_date)
@@ -56,11 +56,21 @@ def main():
         print(f"End date object: {end_date}")
         
     # Load tickers for dates
-    file_path = "D:/OneDrive/Documents/stonks_testing/"
+    market_cap_file_path = "D:/OneDrive/Documents/stonks_testing/massive_backtests/market_cap_2026-01-16.csv"
+    input_file_path = "D:/OneDrive/Documents/stonks_testing/massive_backtests/daily_bars_with_mkt_cap/"
+    output_file_path = "D:/OneDrive/Documents/stonks_testing/massive_backtests/us_stocks_daily_flat_files/"
     if args.mac:
-        file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
-        file_path = file_path_mac
-        
+        market_cap_file_path = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/massive_backtests/market_cap_2026-01-16.csv"
+        input_file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/massive_backtests/us_stocks_daily_flat_files/"
+        output_file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/massive_backtests/daily_bars_with_mkt_cap/"
+        input_file_path = input_file_path_mac
+        output_file_path = output_file_path_mac
+    
+    # Load market cap data
+    market_cap_df = pd.read_csv(market_cap_file_path)
+    market_cap_dict = pd.Series(market_cap_df.market_cap.values,index=market_cap_df.ticker).to_dict()
+    ticker_type_dict = pd.Series(market_cap_df.security_type.values,index=market_cap_df.ticker).to_dict()
+    
     # Loop through all weekdays between start and end date
     prev_date = start_date
     all_results = []
@@ -68,27 +78,13 @@ def main():
         
     print(f"Starting analysis from {start_date}...")
     
-    # Get market caps for all tickers on start date
-    # TO DO: Should we be getting the tickers from a file so that we can have an in and out sample?
-    daily_aggs = analyzer.fetch_daily_aggs(start_date)
-    for ticker_agg in daily_aggs:
-        ticker = ticker_agg.ticker
-        ticker_details = analyzer.fetch_ticker_details(ticker)
-        market_cap = ticker_details.market_cap
-        current_market_caps[ticker] = {'market_cap': market_cap}
-        ticker_prev_agg = analyzer.fetch_previous_day_agg(ticker)
-        print(ticker_prev_agg)
-        current_market_caps[ticker]['prev_close'] = ticker_prev_agg[0].close if ticker_prev_agg and len(ticker_prev_agg) > 0 else None
-        print(f"Ticker: {ticker}, Market Cap: {market_cap}, Prev Close: {current_market_caps[ticker]['prev_close']}")
-
     current_date = get_next_weekday(prev_date + timedelta(days=1))
     
     while current_date <= end_date:
-        print(current_date)
-        
-        daily_aggs = analyzer.fetch_daily_aggs(current_date)
-        current_date_tickeres = get_list_of_tickers_from_daily_aggs(daily_aggs)           
-            
+        print(f"Evaluating date {current_date}")
+        daily_bars_df = pd.read_csv(f"{input_file_path}{current_date}.csv")
+        ticker_price_dict = bars_to_df(daily_bars_df).set_index('ticker')['close'].to_dict()
+        #TO DO: make mkt cap adjustments for each ticker for that day
                 
         # Move to next day
         prev_date = current_date
