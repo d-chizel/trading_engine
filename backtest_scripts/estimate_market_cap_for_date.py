@@ -68,8 +68,7 @@ def main():
     
     # Load market cap data
     market_cap_df = pd.read_csv(market_cap_file_path)
-    market_cap_dict = pd.Series(market_cap_df.market_cap.values,index=market_cap_df.ticker).to_dict()
-    ticker_type_dict = pd.Series(market_cap_df.security_type.values,index=market_cap_df.ticker).to_dict()
+    market_cap_dict = market_cap_df.set_index('ticker').to_dict('index')
     
     # Loop through all weekdays between start and end date
     prev_date = start_date
@@ -81,15 +80,42 @@ def main():
     current_date = get_next_weekday(prev_date + timedelta(days=1))
     
     while current_date <= end_date:
-        print(f"Evaluating date {current_date}")
-        daily_bars_df = pd.read_csv(f"{input_file_path}{current_date}.csv")
-        ticker_price_dict = bars_to_df(daily_bars_df).set_index('ticker')['close'].to_dict()
-        #TO DO: make mkt cap adjustments for each ticker for that day
-                
+        try:
+            daily_bars_df = pd.read_csv(f"{input_file_path}{current_date}.csv")
+            daily_bars_dict = daily_bars_df.set_index('ticker').to_dict('index')
+            print(f"Evaluating date {current_date}")
+                        
+            # Get market caps for all tickers on current date
+            for ticker in daily_bars_dict.keys():
+                if ticker in market_cap_dict:
+                    scaling_factor = daily_bars_dict[ticker]['close'] / market_cap_dict[ticker]['close']
+                    scaled_market_cap = market_cap_dict[ticker]['market_cap'] * scaling_factor
+                    daily_bars_dict[ticker]['recent_price'] = market_cap_dict[ticker]['close']                
+                    daily_bars_dict[ticker]['recent_market_cap'] = market_cap_dict[ticker]['market_cap']
+                    daily_bars_dict[ticker]['scaled_market_cap'] = scaled_market_cap
+                    daily_bars_dict[ticker]['security_type'] = market_cap_dict[ticker]['security_type']
+                else:
+                    daily_bars_dict[ticker]['recent_price'] = None
+                    daily_bars_dict[ticker]['recent_market_cap'] = None
+                    daily_bars_dict[ticker]['scaled_market_cap'] = None
+                    daily_bars_dict[ticker]['security_type'] = None
+                            
+            # Convert the dictionary back to a DataFrame
+            output_df = pd.DataFrame.from_dict(daily_bars_dict, orient='index')
+            
+            # Save the DataFrame with market cap data to a new CSV
+            output_df.to_csv(f"{output_file_path}{current_date}.csv")
+            
+        except FileNotFoundError:
+            print(f"File not found for {current_date}, skipping.")
+            # Move to next day
+            prev_date = current_date
+            current_date = get_next_weekday(current_date + timedelta(days=1))
+            continue 
+        
         # Move to next day
         prev_date = current_date
-        current_date = get_next_weekday(prev_date + timedelta(days=1))
-    
+        current_date = get_next_weekday(current_date + timedelta(days=1))   
 
 if __name__ == "__main__":
     main()
