@@ -774,6 +774,7 @@ class CmdAPI:
             shares_to_locate = row['shares_to_locate']
             short_size = row['short_size']
             self.ticker_df.at[index, 'shares_to_short'] = min(round(short_size / last_quote_bid), shares_to_locate)
+            self.ticker_df.at[index, 'estimated_bro'] = self.ticker_df.at[index, 'shares_to_short'] * 0.01
         return self.ticker_df
 
     def inquire_short_locate_for_all_gapped_stocks(self, connection):
@@ -840,6 +841,9 @@ class CmdAPI:
         print("ticker, locate_available_check, locate_cost_check, no_existing_locate_check, volume_check")
         for index, row in self.ticker_df.iterrows():
             locate_available_check = row['locate_available']
+            total_fees_est = row['total_locate_cost'] + row['estimated_bro']
+            trade_amount = row['shares_to_short'] * row['last_quote_bid']
+            self.ticker_df.at[index, 'total_fees_est'] = total_fees_est / trade_amount < 0.01
             locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.004
             no_existing_locate_check = row['locate_order_status'] != 'Accepted!' and row['route'] != 'ALL'
             volume_check = row['volume'] >= 0
