@@ -843,8 +843,8 @@ class CmdAPI:
             locate_available_check = row['locate_available']
             total_fees_est = row['total_locate_cost'] + row['estimated_bro']
             trade_amount = row['shares_to_short'] * row['last_quote_bid']
-            self.ticker_df.at[index, 'total_fees_est'] = total_fees_est / trade_amount < 0.01
-            locate_cost_check = row['total_locate_cost'] <= row['short_size'] * 0.004
+            self.ticker_df.at[index, 'total_fees_est'] = total_fees_est
+            locate_cost_check = total_fees_est / trade_amount < 0.01
             no_existing_locate_check = row['locate_order_status'] != 'Accepted!' and row['route'] != 'ALL'
             volume_check = row['volume'] >= 0
             self.ticker_df.at[index, 'pre_locate_check_passed'] = bool(
@@ -1030,3 +1030,8 @@ class CmdAPI:
                 print(f"\nRecieved Data:\n{retdata}\n")
             else:
                 print("\nTimed out / No Data Recieved\n")
+                
+    #Method:trim ticker_df
+    def printTrimmedTickerDf(self, df):
+        trimmed_ticker_df =df.drop(columns=['last_quote_ask', 'volume', 'total_locate_cost', 'locate_price', 'estimated_bro'])
+        print(trimmed_ticker_df)

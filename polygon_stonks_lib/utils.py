@@ -114,6 +114,12 @@ def parse_arguments():
         help="Market value of portfolio. Default: 30000"
     )
     
+    parser.add_argument(
+        "--filtered-value", 
+        type=float,
+        help="Control value of filtered stocks"
+    )
+    
     return parser.parse_args()
 
 def parse_date(date_string):

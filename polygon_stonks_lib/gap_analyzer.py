@@ -212,7 +212,7 @@ class GapAnalyzer:
 
         return {'tickers_list': filtered_tickers, 'tickers_with_prices': tickers_price_dict}
 
-    def get_premarket_gapped_stocks(self, gap_threshold=0.2, gap_direction="up", price_threshold=1.7):
+    def get_premarket_gapped_stocks(self, gap_threshold=0.2, gap_direction="up", price_threshold=0.1):
         """
         Get stocks that have gapped based on the gap threshold where the stock price is higher than 1.5.
         
@@ -250,7 +250,7 @@ class GapAnalyzer:
         print(gapped_stocks)
         return gapped_stocks
     
-    def get_overnight_gapped_stocks(self, gap_threshold=0.2, gap_direction="up", price_threshold=1.7):
+    def get_overnight_gapped_stocks(self, gap_threshold=0.2, gap_direction="up", price_threshold=0.1):
         """
         Get stocks that have gapped based on the gap threshold where the stock price is higher than 2.
         

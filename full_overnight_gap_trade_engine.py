@@ -6,7 +6,7 @@ from polygon_stonks_lib.utils import parse_arguments
 import pandas as pd
 
 async def main():
-       
+
     # Parse command line arguments
     args = parse_arguments()
     
@@ -96,7 +96,9 @@ async def main():
                 cmd.update_df_with_positions(connection)
                 cmd.pre_trade_checks()
                 
-                print(f"\nUpdated ticker_df with positions:\n{cmd.ticker_df}")
+                #ticker_df_without_cost = cmd.ticker_df.drop(columns=['total_locate_cost'])
+                #print(f"\nUpdated ticker_df with positions:\n{ticker_df_without_cost}")
+                cmd.printTrimmedTickerDf(cmd.ticker_df)
                 
                 if args.autorun == True:
                     get_locates = "yes"
@@ -110,8 +112,9 @@ async def main():
                     
                 cmd.update_df_with_short_locate_orders(connection)
                 cmd.pre_trade_checks()
-                print(f"\nUpdated ticker_df with positions:\n{cmd.ticker_df}\n")
-                    
+                print(f"\nUpdated ticker_df with positions:")
+                cmd.printTrimmedTickerDf(cmd.ticker_df)
+                
                 if args.autorun == True:
                         sell_short = "yes"
                 else:
