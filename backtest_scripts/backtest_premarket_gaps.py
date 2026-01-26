@@ -1,5 +1,5 @@
 """
-Gets stocks that have gapped through time.
+Gets stocks that have gapped during pre market trading.
 """
 import sys
 import os
@@ -14,11 +14,9 @@ import pandas as pd
 def main():
     '''
     TODO 
-    1. Load tickers for a date
-    2. Load tickers for the next date
-    3. Check foor tickers that have gapped between close and open
-    4. Generate analytic results
-    5. Output to csv
+    1. Load smallcap tickers for a date
+    2. For each ticker, query minute bars over API
+    3. Check for premarket gap over 20%
     '''
     
     # Parse command line arguments
@@ -69,9 +67,9 @@ def main():
         print(f"End date object: {end_date}")
         
     # Load tickers for dates
-    input_file_path = "D:/OneDrive/Documents/stonks_testing/massive_backtests/daily_bars_with_mkt_cap/"
+    input_file_path = "D:/OneDrive/Documents/stonks_testing/massive_backtests/us_stocks_daily_flat_files/"
     if args.mac:
-        input_file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/massive_backtests/daily_bars_with_mkt_cap/"
+        input_file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/massive_backtests/us_stocks_daily_flat_files/"
         input_file_path = input_file_path_mac
         
     # Loop through all weekdays between start and end date
@@ -83,24 +81,10 @@ def main():
     
     # Get market caps for all tickers on start date
     # TO DO: Should we be getting the tickers from a file so that we can have an in and out sample?
-    daily_aggs = analyzer.fetch_daily_aggs(start_date)
-    for ticker_agg in daily_aggs:
-        ticker = ticker_agg.ticker
-        ticker_details = analyzer.fetch_ticker_details(ticker)
-        market_cap = ticker_details.market_cap
-        current_market_caps[ticker] = {'market_cap': market_cap}
-        ticker_prev_agg = analyzer.fetch_previous_day_agg(ticker)
-        print(ticker_prev_agg)
-        current_market_caps[ticker]['prev_close'] = ticker_prev_agg[0].close if ticker_prev_agg and len(ticker_prev_agg) > 0 else None
-        print(f"Ticker: {ticker}, Market Cap: {market_cap}, Prev Close: {current_market_caps[ticker]['prev_close']}")
-
-    current_date = get_next_weekday(prev_date + timedelta(days=1))
     
     while current_date <= end_date:
         print(current_date)
         
-        daily_aggs = analyzer.fetch_daily_aggs(current_date)
-        current_date_tickeres = get_list_of_tickers_from_daily_aggs(daily_aggs)           
             
                 
         # Move to next day
