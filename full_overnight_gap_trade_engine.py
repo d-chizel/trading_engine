@@ -32,12 +32,17 @@ async def main():
         max_market_cap=args.max_market_cap
     )
     
+    if args.filtered_value:
+        filtered_value = args.filtered_value
+    else:
+        filtered_value = len(filtered_results)
+    
     # Display results
     print(f"Filtered stocks by market cap: {filtered_results[:]}")  # Show all
-    print(f"Filtered stocks that gap up more than 20%: {len(filtered_results)}")
+    print(f"Filtered stocks that gap up more than 20%: {filtered_value}")
     
     portfolio_value = args.port_value
-    short_size = min(portfolio_value * (3/3) / len(filtered_results), portfolio_value/10)
+    short_size = min(portfolio_value * (3/3) / filtered_value, portfolio_value/10)
     today = pd.Timestamp.now().strftime("%Y-%m-%d")
     #yesterday = (pd.Timestamp.now() - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
     #print(f"Yesterday's date: {yesterday}")

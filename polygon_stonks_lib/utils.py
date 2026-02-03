@@ -110,13 +110,13 @@ def parse_arguments():
     parser.add_argument(
         "--port-value", 
         type=float, 
-        default=30000,
-        help="Market value of portfolio. Default: 30000"
+        default=25000,
+        help="Market value of portfolio. Default: 25000"
     )
     
     parser.add_argument(
         "--filtered-value", 
-        type=float,
+        type=int,
         help="Control value of filtered stocks"
     )
     
