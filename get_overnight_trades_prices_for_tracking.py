@@ -4,6 +4,7 @@ Script to find close prices ('c' values) at specific New York times.
 Searches for data at 9:30 AM, 10:30 AM, and 12:00 PM EST/EDT.
 """
 
+import platform
 from polygon_stonks_lib import GapAnalyzer
 from polygon_stonks_lib.utils import parse_arguments, parse_date
 import pandas as pd
@@ -17,9 +18,12 @@ def main():
     api_key = args.api_key
     analyzer = GapAnalyzer(api_key)
     
+# Detect OS: 'Darwin' for macOS, 'Windows' for Windows, 'Linux' for Linux
+    is_mac = platform.system() == 'Darwin' or args.mac
+    
     file_path = "D:/OneDrive/Documents/stonks_testing/intraday_prices_for_pnl_tracking/"
     file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/intraday_prices_for_pnl_tracking/"
-    if args.mac:
+    if is_mac:
         file_path = file_path_mac
     
     input_file = f"{file_path}trades_data.csv"
