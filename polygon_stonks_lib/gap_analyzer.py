@@ -452,9 +452,9 @@ class GapAnalyzer:
         
         if shares < 100:
             return 100
-        elif shares % 100 == 0:
+        elif shares % 10 == 0:
             return shares_rounded
-        elif shares % 100 <= 20:
+        elif shares % 10 <= 2:
             return shares_rounded
         else:
-            return shares_rounded + 100
+            return shares_rounded + 10
