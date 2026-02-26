@@ -450,11 +450,16 @@ class GapAnalyzer:
         shares = int(short_size // price)
         shares_rounded = (shares // 10) * 10
         
-        if shares < 100:
-            return 100
+        return shares
+        
+        '''
+        if shares < 10:
+            return 10
         elif shares % 10 == 0:
             return shares_rounded
         elif shares % 10 <= 2:
             return shares_rounded
         else:
             return shares_rounded + 10
+        '''
+        
