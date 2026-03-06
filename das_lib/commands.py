@@ -225,7 +225,8 @@ class CmdAPI:
                         'locate_available': False,
                         'shares_to_short': int(pos_row.get('qty', 0)),
                         'pre_locate_check_passed': False,
-                        'pre_trade_check_passed': False
+                        'pre_trade_check_passed': False,
+                        'estimated_bro': 0.0
                     }
 
                     # Append the new row to the ticker_df
