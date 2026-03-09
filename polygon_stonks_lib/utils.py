@@ -115,9 +115,9 @@ def parse_arguments():
     )
     
     parser.add_argument(
-        "--filtered-value", 
+        "--filtered-count", 
         type=int,
-        help="Control value of filtered stocks"
+        help="Control count of filtered stocks"
     )
     
     return parser.parse_args()
