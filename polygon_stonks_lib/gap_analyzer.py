@@ -447,11 +447,13 @@ class GapAnalyzer:
         """
         Calculate number of shares to short based on dollar amount and stock price.
         """
-        shares = int(short_size // price)
+        if price != 0 and price is not None:
+            shares = int(short_size // price)
+        else:
+            shares = 0
         shares_rounded = (shares // 10) * 10
         
         return shares
-        
         '''
         if shares < 10:
             return 10
