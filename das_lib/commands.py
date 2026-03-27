@@ -818,7 +818,7 @@ class CmdAPI:
                 elif float(retdata.split(" ")[3]) < locate_price and float(retdata.split(" ")[4]) >= shares_to_locate:
                     locate_price = float(retdata.split(" ")[3])  # Assuming the price is the fourth element
                     locate_shares_available = float(retdata.split(" ")[4])  # Assuming the available shares is the fifth element
-                    lowest_price_route = route
+                    lowest_price_route = str(retdata.split(" ")[5])  # Assuming the route is the sixth element
                     #print(f"Route: {route}, Price: {locate_price}, Available Shares: {locate_shares_available}")
                 
             except socket.timeout as e:
