@@ -797,7 +797,8 @@ class CmdAPI:
     
     #Method:SLPriceInquire   
     def short_locate_price_inquire_lowest(self, connection, symbol, shares_to_locate):
-        locate_routes = ["ATLAS2", "ATLAS1", "ATLAS3", "ATLAS6", "ATLAS7"]
+        locate_routes = ["ATLAS2", "ATLAS1", "ATLAS3", "ATLAS6", "ATLAS8"]
+        # ATLAS4, ATLAS5, ATLAS7, CPST1, and CPST2 are currently not included in the locate route due to instability or no support.
         #script = f"SLPRICEINQUIRE {symbol.upper()} {shares_to_locate} ATLAS2"
         
         locate_price = 10001  # Default locate price
