@@ -800,7 +800,7 @@ class CmdAPI:
         locate_routes = ["ATLAS2", "ATLAS1", "ATLAS3", "ATLAS6", "ATLAS7"]
         #script = f"SLPRICEINQUIRE {symbol.upper()} {shares_to_locate} ATLAS2"
         
-        locate_price = 100  # Default locate price
+        locate_price = 10001  # Default locate price
         locate_shares_available = 0 # Default available shares
         lowest_price_route = ""
         for route in locate_routes:
