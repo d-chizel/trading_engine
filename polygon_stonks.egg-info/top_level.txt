@@ -1,2 +1,3 @@
-polygon_stonks
+das_lib
+polygon_stonks_lib
 tests

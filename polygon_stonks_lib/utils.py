@@ -27,6 +27,12 @@ def parse_arguments():
         help="Specify if running on Mac (default is PC)"
     )
 
+    parser.add_argument(
+        "--server",
+        action="store_true",
+        help="Use server file path for output files"
+    )
+
     # Optional arguments        
     parser.add_argument(
         "--verbose",
