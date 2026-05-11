@@ -53,6 +53,9 @@ async def main():
         last_quote = analyzer.fetch_last_quote(ticker)
         daily_ticker_snapshot = analyzer.fetch_snapshot_ticker(ticker)
         volume = daily_ticker_snapshot.prev_day.volume
+        market_cap_info = analyzer.get_market_cap_for_ticker(ticker)
+        market_cap = market_cap_info.get("market_cap") if market_cap_info else None
+        cap_segment = "micro" if market_cap and market_cap < 300000000 else "small" if market_cap and market_cap < 2_000_000_000 else "Other"
         bid_price = 0
         ask_price = 0
 
@@ -62,7 +65,7 @@ async def main():
             if last_quote.ask_price > 0:
                 ask_price = last_quote.ask_price
             shares_to_locate = analyzer.get_locate_shares_amount(short_size, last_quote.bid_price)
-            ticker_dict[ticker] = {"last_quote_bid": bid_price, "last_quote_ask": ask_price, "shares_to_locate": shares_to_locate, "short_size": short_size, "volume": volume}
+            ticker_dict[ticker] = {"last_quote_bid": bid_price, "last_quote_ask": ask_price, "shares_to_locate": shares_to_locate, "short_size": short_size, "volume": volume, "market_cap": market_cap, "cap_segment": cap_segment}
         else:
             print(f"No last quote data for {ticker}, skipping...")
                     

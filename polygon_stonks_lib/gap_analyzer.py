@@ -84,6 +84,23 @@ class GapAnalyzer:
         self.snapshot_data = self.client.get_snapshot_all(market_type, include_otc=include_otc)
         return self.snapshot_data
     
+    def update_snapshot_with_market_cap(self):
+        """
+        Updates each ticker in self.snapshot_data with its market cap.
+        WARNING: This will make an API call for every ticker in the snapshot, 
+        which may result in rate limiting or take a long time to complete.
+        """
+        if not self.snapshot_data:
+            raise ValueError("No snapshot data available. Call fetch_snapshot() first.")
+        
+        for item in self.snapshot_data:
+            mc_info = self.get_market_cap_for_ticker(item.ticker)
+            # Attach the new attributes to the snapshot object
+            item.market_cap = mc_info.get("market_cap") if mc_info else None
+            item.stock_type = mc_info.get("type") if mc_info else None
+            
+        return self.snapshot_data
+
     def fetch_daily_aggs(self, date):
         """
         Fetch grouped_daily_aggs data from Polygon.io API.
