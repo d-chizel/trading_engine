@@ -133,7 +133,7 @@ async def main():
                 if sell_short.lower() == 'yes':
                     while(stay_alive_2):
 
-                        cmd.short_sell_join_offer_for_all_gapped_stocks(connection, autorun=args.autorun)
+                        cmd.short_sell_join_offer_for_all_gapped_stocks(connection, ask_buffer = args.ask_buffer, autorun=args.autorun)
                         
                         rerun_sell = input("Type 'Yes' to re-attempt any execution Enter to quit: ")
                         if rerun_sell.lower() != 'yes':

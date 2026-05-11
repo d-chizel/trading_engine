@@ -352,7 +352,7 @@ class CmdAPI:
                     self.short_sell_market_new_order(connection, symbol, shares_to_short, route, tif)
                     
     #Method:Short Sell New Order at offer for all Gapped Stocks 
-    def short_sell_join_offer_for_all_gapped_stocks(self, connection, autorun):
+    def short_sell_join_offer_for_all_gapped_stocks(self, connection, ask_buffer, autorun):
         for index, row in self.ticker_df.iterrows():
             if row['pre_trade_check_passed']:  # Only place short sell order if locate is available or already shortable
                 symbol = row['ticker']
@@ -365,9 +365,9 @@ class CmdAPI:
                 bid_ask_spread = (ask_price - bid_price)
                 print(f"Bid Price: {bid_price}, Ask Price: {ask_price}")
                 if bid_ask_spread / bid_price <= 0.005:
-                    trade_price = ask_price
+                    trade_price = ask_price * ask_buffer
                 else:
-                    trade_price = bid_price + round(bid_ask_spread * 0.75, 2)
+                    trade_price = (bid_price + round(bid_ask_spread * 0.75, 2)) * ask_buffer
                 print(f"\nPlacing market short sell order for ticker: {symbol}, for {shares_to_short} shares at price: {trade_price}, at route: {route}")
                 if not autorun:
                     proceed = input("Type 'Yes' to proceed to place short sell join offer order or Enter to skip: ")

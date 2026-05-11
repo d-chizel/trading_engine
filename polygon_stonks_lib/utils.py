@@ -126,6 +126,13 @@ def parse_arguments():
         help="Control count of filtered stocks"
     )
     
+    parser.add_argument(
+        "--ask-buffer", 
+        type=float, 
+        default=1.0,
+        help="Buffer to apply to ask price when placing short sell orders. Default: 1.0"
+    )
+    
     return parser.parse_args()
 
 def parse_date(date_string):
