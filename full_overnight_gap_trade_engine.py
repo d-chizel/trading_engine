@@ -14,6 +14,8 @@ async def main():
     if args.mac:
         file_path_mac = "/Users/derrickkchan/Library/CloudStorage/OneDrive-Personal/Documents/stonks_testing/"
         file_path = file_path_mac
+    if args.server:
+        file_path = "C:\\Users\\Administrator\\OneDrive\\Documents\\stonks_testing\\"
 
     # Initialize with your API key
     api_key = "oPNvU_u9B3eHFJrSG7ppDrnP4HGmgPqU"
