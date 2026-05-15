@@ -365,9 +365,9 @@ class CmdAPI:
                 bid_ask_spread = (ask_price - bid_price)
                 print(f"Bid Price: {bid_price}, Ask Price: {ask_price}")
                 if bid_ask_spread / bid_price <= 0.005:
-                    trade_price = ask_price * ask_buffer
+                    trade_price = round(ask_price * ask_buffer, 2)
                 else:
-                    trade_price = (bid_price + round(bid_ask_spread * 0.75, 2)) * ask_buffer
+                    trade_price = round((bid_price + bid_ask_spread * 0.75) * ask_buffer, 2)
                 print(f"\nPlacing market short sell order for ticker: {symbol}, for {shares_to_short} shares at price: {trade_price}, at route: {route}")
                 if not autorun:
                     proceed = input("Type 'Yes' to proceed to place short sell join offer order or Enter to skip: ")
