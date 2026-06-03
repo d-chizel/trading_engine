@@ -33,6 +33,7 @@ async def main():
         min_market_cap=args.min_market_cap,
         max_market_cap=args.max_market_cap
     )
+    filtered_results = sorted(filtered_results)
     
     if args.filtered_count:
         filtered_count = args.filtered_count
