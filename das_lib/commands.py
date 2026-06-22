@@ -77,7 +77,7 @@ class CmdAPI:
             print(f"\nException: {e}")
 
         finally:
-            return retdata
+            pass
             #connection.send_script(bytearray(f"UNSB {symbol.upper()} {actualLvl}\r\n", encoding = "ascii")) #Unsub from symbol
         #End Block
     
@@ -973,7 +973,7 @@ class CmdAPI:
                 print(f"Recieved Data:\n{retdata}\n")
             else:
                 print("Timed out / No Data Recieved\n")
-            return retdata
+            pass
     
     def get_short_locate_orders_df(self,connection):
         locate_orders = self.get_short_locate_orders(connection)
