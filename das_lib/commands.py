@@ -973,7 +973,7 @@ class CmdAPI:
                 print(f"Recieved Data:\n{retdata}\n")
             else:
                 print("Timed out / No Data Recieved\n")
-            return retdata
+            pass
     
     def get_short_locate_orders_df(self,connection):
         locate_orders = self.get_short_locate_orders(connection)
