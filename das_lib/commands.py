@@ -77,7 +77,7 @@ class CmdAPI:
             print(f"\nException: {e}")
 
         finally:
-            return retdata
+            pass
             #connection.send_script(bytearray(f"UNSB {symbol.upper()} {actualLvl}\r\n", encoding = "ascii")) #Unsub from symbol
         #End Block
     
