@@ -356,7 +356,7 @@ class CmdAPI:
         for index, row in self.ticker_df.iterrows():
             if row['pre_trade_check_passed']:  # Only place short sell order if locate is available or already shortable
                 symbol = row['ticker']
-                shares_to_short = row['shares_to_short']
+                shares_to_short = row['located_shares'] - row['shares_in_position'] if row['locate_available'] else row['shares_to_short']
                 route = "XALL"
                 tif = "DAY"
                 print(f"Getting bid/ask prices for {symbol}, shares to short: {shares_to_short}")
@@ -384,7 +384,7 @@ class CmdAPI:
         for index, row in self.ticker_df.iterrows():
             if row['pre_trade_check_passed']:  # Only place short sell order if locate is available or already shortable
                 symbol = row['ticker']
-                shares_to_short = row['shares_to_short']
+                shares_to_short = row['located_shares'] - row['shares_in_position'] if row['locate_available'] else row['shares_to_short']
                 price = row['last_quote_bid']
                 route = "ALGO"
                 print(f"\nPlacing market short sell order for ticker: {symbol}, for {shares_to_short} shares at route: {route}")
