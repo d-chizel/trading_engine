@@ -1008,6 +1008,8 @@ class CmdAPI:
                         self.ticker_df.at[index, 'locate_order_status'] = 'No Locate Order'
                     else:
                         self.ticker_df.at[index, 'locate_order_status'] = row2['notes']
+                        self.ticker_df.at[index, 'located_shares'] = row2['shares']
+                        
 
         return self.ticker_df
 
