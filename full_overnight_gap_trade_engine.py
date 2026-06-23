@@ -76,7 +76,6 @@ async def main():
     df.index.name = 'ticker'
     df.reset_index(inplace=True)
     print(df)
-
     df.to_csv(f"{file_path}overnight_gapped_stocks.csv")
     
     # Load overnight gapped stocks from CSV
@@ -95,7 +94,8 @@ async def main():
             stay_alive = True
             stay_alive_2 = True
             first_run = True
-
+                
+            print("got to 98")
             while(stay_alive):
                 cmd.update_df_with_short_locate_orders(connection)
                 if first_run:
