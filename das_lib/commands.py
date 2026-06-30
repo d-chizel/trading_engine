@@ -816,7 +816,7 @@ class CmdAPI:
                 elif retdata.split(" ")[6] == "AlreadyShortable":
                     print("Already shortable, no locate needed.")
                     return {"locate_price": 0, "total_locate_cost": 0, "route": "ALL", "locate_available": True}
-                elif float(retdata.split(" ")[3]) < locate_price and float(retdata.split(" ")[4]) >= shares_to_locate:
+                elif float(retdata.split(" ")[3]) < locate_price and float(retdata.split(" ")[4]) >= shares_to_locate and retdata.split(" ")[2] == symbol.upper():
                     locate_price = float(retdata.split(" ")[3])  # Assuming the price is the fourth element
                     locate_shares_available = float(retdata.split(" ")[4])  # Assuming the available shares is the fifth element
                     lowest_price_route = str(retdata.split(" ")[5])  # Assuming the route is the sixth element
