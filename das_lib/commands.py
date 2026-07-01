@@ -1002,13 +1002,17 @@ class CmdAPI:
         grouped_orders_df = self.get_short_locate_orders_df(connection)
         for index, row in self.ticker_df.iterrows():
             self.ticker_df.at[index, 'locate_order_status'] = 'No Locate Order'
+            if 'located_shares' not in self.ticker_df.columns or pd.isnull(self.ticker_df.at[index, 'located_shares']):
+                already_located_shares = 0
+            else:
+                already_located_shares = float(self.ticker_df.at[index, 'located_shares'])
             for index2, row2 in grouped_orders_df.iterrows():
                 if row['ticker'] == row2['symb']:
-                    if row2['notes'] is None or row2['notes'] == '':
+                    if row2['notes'] is None or row2['notes'] == '' or row2['status'] == 'Rejected' or row2['status'] == 'Canceled' or row2['status'] == 'Closed':
                         self.ticker_df.at[index, 'locate_order_status'] = 'No Locate Order'
                     else:
                         self.ticker_df.at[index, 'locate_order_status'] = row2['notes']
-                        self.ticker_df.at[index, 'located_shares'] = row2['shares']
+                        self.ticker_df.at[index, 'located_shares'] = already_located_shares + float(row2['shares'])
                         
 
         return self.ticker_df
